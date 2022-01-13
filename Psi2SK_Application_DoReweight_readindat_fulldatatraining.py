@@ -22,10 +22,7 @@ import xgboost as xgb
 from xgboost import plot_importance
 from xgboost import plot_tree
 import numpy as np
-import matplotlib
-matplotlib.use('agg')
 import matplotlib.pyplot as plt 
-import seaborn as sb
 from sklearn import metrics
 import pandas as pd
 import root_numpy
@@ -33,14 +30,13 @@ from array import array
 import ROOT as r
 from ROOT import TCut
 import time as timer
-import sys
 
 r.gROOT.SetBatch(True)
 
 time_start=timer.time()
 
 number = 100000
-year = 2017
+year = 2018
 # In[2]:
 
 
@@ -148,7 +144,6 @@ variable("kstVtxCL","kstVtxCL",[100,0,1])
 variable("weight","PUweight",[100,-1,3])
 
 
-
 # In[3]:
 
 
@@ -166,25 +161,17 @@ def only_activate_variables(tree, variables):
             tree.SetBranchStatus(branch, 1)
 
 def plot_var(varname, cut="1", reweight=False):
-    s = None
-    if reweight:
-        s = "after/{}/".format(year)
-    else :
-        s = "before/{}/".format(year)
-
-    print (s+" reweight plot")
-
     only_activate_variables(rdata, [varname, cut]) #this speeds things up
     only_activate_variables(MC, ["weight", "tagged_mass", varname, cut]) #this speeds things up
-    rdata.SetBranchStatus("nsigb4p1_{}_sw".format(year), 1) #this ensure the introduction of SWeight of real data for signal extraction from background
+    rdata.SetBranchStatus("nsigb6p1_{}_sw".format(year), 1) #this ensure the introduction of SWeight of real data for signal extraction from background
     if reweight: 
         MC.SetBranchStatus("MCw", 1) #this needs to be done manually because it's on the friend tree
     
     hdata = r.TH1F("hdata", "hdata", variables[varname].get_nbins(), variables[varname].get_xmin(), variables[varname].get_xmax())
-    swname = "nsigb4p1_{}_sw*".format(year)
+    swname = "nsigb6p1_{}_sw*".format(year)
     #rdata.Draw(varname+">>hdata", cut, "goff")
     #rdata.Draw(varname+">>hdata", swname+"{0}".format(cut), "goff")
-    rdata.Draw(varname+">>hdata", swname+"{0}".format(cut), "goff", number, 0)
+    rdata.Draw(varname+">>hdata", swname+"{0}".format(cut), "goff")#, number, 0)
     if hdata.Integral()==0:
         print("Empty histogram!")
         return
@@ -195,7 +182,7 @@ def plot_var(varname, cut="1", reweight=False):
     #MC.Draw(varname+">>hMC", "PUweight*"+wname+"({0})".format(cut), "same goff")
     #MC.Draw(varname+">>hMC", wname+"({0})".format(cut), "same goff")
     wname = ""
-    MC.Draw(varname+">>hMC", "weight*"+wname+"({0})".format(cut), "same goff", number, 0)
+    MC.Draw(varname+">>hMC", "weight*"+wname+"({0})".format(cut), "same goff")#, number, 0)
     if hMC.Integral()==0:
         print("Empty histogram!")
         return
@@ -211,7 +198,7 @@ def plot_var(varname, cut="1", reweight=False):
     
     hWMC = r.TH1F("hWMC", "hWMC", hdata.GetNbinsX(), hdata.GetXaxis().GetXmin(), hdata.GetXaxis().GetXmax())
     wname = "MCw*"
-    MC.Draw(varname+">>hWMC", "weight*"+wname+"({0})".format(cut), "same goff", number, 0)
+    MC.Draw(varname+">>hWMC", "weight*"+wname+"({0})".format(cut), "same goff")#, number, 0)
     if hWMC.Integral()==0:
         print("Empty histogram!")
         return
@@ -358,9 +345,9 @@ def plot_var(varname, cut="1", reweight=False):
     wline.Draw()
 
     ############################################################################
-    #c.SaveAs("plots_fulldatatraining/data_vs_mc/"+wname+varname+".png")
-    #c.SaveAs("plots_fulldatatraining/data_vs_mc/"+wname+varname+".pdf")
-    c.SaveAs("plots_test_Jpsi/"+s+varname+".png")
+    #c.SaveAs("Psi2SK_plots_fulldataapplication/data_vs_mc/"+wname+varname+".png")
+    #c.SaveAs("Psi2SK_plots_fulldataapplication/data_vs_mc/"+wname+varname+".pdf")
+    c.SaveAs("Psi2SK_plots/"+varname+".png")
     
     #at the moment I'm saving the legend in a separate canvas EACH TIME. This is a quick workaraound and it is inefficient. It needs to be fixed later.
     cleg = r.TCanvas("legend","legend",500,350)
@@ -368,8 +355,8 @@ def plot_var(varname, cut="1", reweight=False):
     leg.AddEntry(hdata, "data", "ep")
     leg.AddEntry(hMC, "simulation", "f")
     leg.Draw()
-    cleg.SaveAs("plots_test_Jpsi/"+s+"legend"+".png")
-    #cleg.SaveAs("plots_fulldatatraining/data_vs_mc/legend"+".pdf")
+    cleg.SaveAs("Psi2SK_plots/legend"+".png")
+    #cleg.SaveAs("Psi2SK_plots_fulldataapplication/data_vs_mc/legend"+".pdf")
     
 
     #================= Draw 3 histograms in one plot
@@ -446,20 +433,20 @@ def plot_var(varname, cut="1", reweight=False):
     line_3In1 = r.TLine(hratio_3In1.GetXaxis().GetXmin(),1,hratio_3In1.GetXaxis().GetXmax(), 1)
     line_3In1.SetLineStyle(3)
     line_3In1.Draw()
-    c_3In1.SaveAs("plots_test_Jpsi/"+s+varname+"_3In1.png")
+    c_3In1.SaveAs("Psi2SK_plots/"+varname+"_3In1.png")
     cleg_3In1 = r.TCanvas("legend_3In1","legend_3In1",500,350)
     leg_3In1 = r.TLegend(0.1,0.1,0.9,0.9)
     leg_3In1.AddEntry(hdata, "data", "ep")
     leg_3In1.AddEntry(hMC, "simulation", "lf")
     leg_3In1.AddEntry(hWMC, "RW simulation", "lf")
     leg_3In1.Draw()
-    cleg_3In1.SaveAs("plots_test_Jpsi/"+s+"legend"+"_3In1.png")
+    cleg_3In1.SaveAs("Psi2SK_plots/legend"+"_3In1.png")
     cleg_ratio_3In1 = r.TCanvas("legend_3In1","legend_3In1",500,350)
     leg_ratio_3In1 = r.TLegend(0.1,0.1,0.9,0.9)
     leg_ratio_3In1.AddEntry(hratio_RDvsMC, "RD/MC", "ep")
     leg_ratio_3In1.AddEntry(hratio_RDvsWMC, "RD/RWMC", "ep")
     leg_ratio_3In1.Draw()
-    cleg_ratio_3In1.SaveAs("plots_test_Jpsi/"+s+"legend"+"_ratio_3In1.png")
+    cleg_ratio_3In1.SaveAs("Psi2SK_plots/legend"+"_ratio_3In1.png")
     #=================
     #c_3In1.Delete()
     #hs_3In1.Delete()
@@ -503,15 +490,7 @@ columns_draw = [
 
                 ]
 
-#data_ori_draw = root_numpy.root2array('/eos/user/c/cjiang/selected/data/2018/JPsiK/after_preselection_after_plainized/plainized_data_cutJpsi0_all_2018_UL_MINIAODv1_all_aftercutJpsi0.root',treename='tree', branches=columns_draw, start=0, stop=200000)
-#phsp_ori_draw = root_numpy.root2array('/eos/user/c/cjiang/selected/MC/2018/JPsiK/after_preselection_after_plainized/plainized_PileupRweight_BuToMuMuK_SIM_2018_UL_MINIAODv1_all_aftercutJpsi0.root', treename='tree',branches=columns_draw, start=0, stop=200000)
-#JpsiKSignal_SW_draw = root_numpy.root2array('/afs/cern.ch/work/c/cjiang/selectUL/CMSSW_10_6_20/src/sel/data/2018/copytree_all_cutJPsiK0/splot_for_jpsik_data/tree_sw.root',treename='tree_sw', branches=['sw_sig'], start=0, stop=200000)
-
 # In[5]:
-
-
-#Draw original distribution before reweighting
-
 
 print("TTrees preparation------------------------------------------")
 
@@ -520,48 +499,20 @@ cut_bpeak = "(tagged_mass>5.0 && tagged_mass<5.6)"
 
 
 rdata = r.TChain("ntuple")
-#rdata.Add('/eos/user/c/cjiang/selected/data/2018/plainized_data_cutJpsi0_all_2018_UL_MINIAODv1_all_aftercutJpsi0.root')
-if (year==2016):
-    rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoDATADataset_b4_2016.root')
-elif (year==2017):
-    rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoDATADataset_b4_2017_0_2_.root')
-    rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoDATADataset_b4_2017_1_2_.root')
-else:
-    rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoDATADataset_b4_2018_0_3_.root')
-    rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoDATADataset_b4_2018_1_3_.root')
-    rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoDATADataset_b4_2018_2_3_.root')
-rdata.AddFriend("tree_sw","/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/SWtree_{}.root".format(year))
+rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoDATADataset_b6_{}_0_1_.root'.format(year))
+rdata.AddFriend("tree_sw","/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/SWtree_{}_b6.root".format(year))
+
+#rdata.Add('/eos/user/c/cjiang/selected/data/2018/Psi2SK/after_preselection_after_plainized/plainized_data_cutPsip0_all_2018_UL_MINIAODv1_all_aftercutPsip0.root')
+#rdata.AddFriend("tree_sw","/afs/cern.ch/work/c/cjiang/selectUL/CMSSW_10_6_20/src/sel/data/2018/copytree_all_cutPsip0/splot_for_psi2sk_data/tree_sw.root")
 
 MC = r.TChain("ntuple")
-#MC.Add('/eos/user/c/cjiang/selected/MC/2018/plainized_PileupRweight_BuToMuMuK_SIM_2018_UL_MINIAODv1_all_aftercutJpsi0.root')
-MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoMCDataset_b4_{}_0_4_.root'.format(year))
-MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoMCDataset_b4_{}_1_4_.root'.format(year))
-MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoMCDataset_b4_{}_2_4_.root'.format(year))
-MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoMCDataset_b4_{}_3_4_.root'.format(year))
-#rdata = r.TChain("tree")
-#rdata.Add('/eos/user/c/cjiang/selected/data/2018/JPsiK/after_preselection_after_plainized/plainized_data_cutJpsi0_all_2018_UL_MINIAODv1_all_aftercutJpsi0.root')
-#rdata.AddFriend("tree_sw","/afs/cern.ch/work/c/cjiang/selectUL/CMSSW_10_6_20/src/sel/data/2018/copytree_all_cutJPsiK0/splot_for_jpsik_data/tree_sw.root")
-#rdata = all_rdata.CloneTree(0)
-#for k in range(0,200000):
-#    all_rdata.GetEntry(k)
-#    rdata.Fill()
-#rdata.AddFriend("tree_sw","/afs/cern.ch/work/c/cjiang/selectUL/CMSSW_10_6_20/src/sel/data/2018/copytree_all_cutJPsiK0/splot_for_jpsik_data/tree_sw.root")
-#
-#all_MC = r.TChain("tree")
-#all_MC.Add('/eos/user/c/cjiang/selected/MC/2018/JPsiK/after_preselection_after_plainized/plainized_PileupRweight_BuToMuMuK_SIM_2018_UL_MINIAODv1_all_aftercutJpsi0.root')
-#MC = all_MC.CloneTree(0)
-#for k in range(0,200000):
-#    all_MC.GetEntry(k)
-#    MC.Fill()
-
-
+MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoMCDataset_b6_{}_0_1_.root'.format(year))
+#MC.Add('/eos/user/c/cjiang/selected/MC/2018/Psi2SK/after_preselection_after_plainized/plainized_PileupRweight_BuToMuMuK_SIM_2018_UL_MINIAODv1_all_aftercutPsip0.root')
 
 MC_friend = r.TTree("wTree", "weights tree")
 leafValues = array("f", [0.0])
 weight_branch = MC_friend.Branch("MCw", leafValues,"MCw[1]/F")
 print("Wtree builded")
-
-#for v in variables.keys(): plot_var(v, cut_bpeak, False)
 
 print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
@@ -584,208 +535,44 @@ print("Training samples preparation------------------------------------------")
 #columns = ['Trkdcabs','Bvtxcl','Blsbs','TrkPt','Bcosalphabs','MumEta','MumPhi','MumPt','MupPt','BPt','Mumdcabserr','Mupdcabserr','Trkdcabserr','Blsbserr']
 
 #columns = ['Trkdcasigbs','Bvtxcl','Blxysig','TrkPt','Bcosalphabs','MumEta','MumPhi']
-
-##columns of Kstmumu
-#columns = ['kstTrkmDCABS','kstTrkpDCABS','bLBS','bLBSE','kstTrkpPt','kstTrkmPt','bCosAlphaBS','bPt','bEta','tagged_mass']
-#columns = ['kstTrkmDCABS','bVtxCL','bLBS','bLBSE','bCosAlphaBS','kstTrkmPt','mumPt','mumEta']
-#columns = ['bVtxCL','bCosAlphaBS','bLBSsig','bDCABSsig','kstTrkmPt','kstTrkmDCABSsig','mumPt','mumEta']
-#columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrkmDCABSsig', 'kstTrkpDCABSsig','kstTrkmMinIP2D','kstTrkpMinIP2D','sum_isopt_04','bPt','bEta','bPhi','kstTrkmPt','kstTrkmEta','kstTrkmPhi','kstTrkpPt','kstTrkpEta','kstTrkpPhi','mumPt','mumEta','mumPhi','mupPt','mupEta','mupPhi']
-columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrkmDCABSsig', 'kstTrkpDCABSsig','kstTrkmMinIP2D','kstTrkpMinIP2D','sum_isopt_04','bPt','kstTrkmPt','kstTrkpPt','mumPt','mupPt','bEta','kstTrkmEta','kstTrkpEta','mumEta','mupEta','bPhi','kstTrkmPhi','kstTrkpPhi','mumPhi','mupPhi']
-#this columns is the final change now
-#columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrkmDCABSsig', 'kstTrkpDCABSsig','kstTrkmMinIP2D','kstTrkpMinIP2D','sum_isopt_04','bPt','bEta','bPhi','kstTrkmPt','kstTrkpPt','mumPt','mupPt']
-#columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrkmDCABSsig', 'kstTrkpDCABSsig','kstTrkmMinIP2D','kstTrkpMinIP2D','sum_isopt_04','bPt','bEta','bPhi']
-sw_branch = ['nsigb4p1_{}_sw'.format(year)]
+#columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrkmDCABSsig', 'kstTrkpDCABSsig','kstTrkmMinIP2D','kstTrkpMinIP2D','sum_isopt_04','bPt','kstTrkmPt','kstTrkpPt','mumPt','mupPt','bEta','kstTrkmEta','kstTrkpEta','mumEta','mupEta','bPhi','kstTrkmPhi','kstTrkpPhi','mumPhi','mupPhi']
+columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrkmDCABSsig', 'kstTrkpDCABSsig','kstTrkmMinIP2D','kstTrkpMinIP2D','sum_isopt_04','bPt','bEta','bPhi','kstTrkmPt','kstTrkpPt','mumPt','mupPt']
+sw_branch = ['nsigb6p1_{}_sw'.format(year)]
 
 #Read data using root_numpy, define the tree name, branch list
 
-#data_ori = root_numpy.root2array('/eos/user/c/cjiang/selected/data/2018/plainized_data_cutJpsi0_all_2018_UL_MINIAODv1_all_aftercutJpsi0.root',treename='tree', branches=columns, start=0, stop=200000)
-#data_ori = root_numpy.root2array('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/recoDATADataset_b4_2017.root',treename='ntuple', branches=columns, start=0, stop=100000)
-data_ori = root_numpy.tree2array(rdata,branches=columns,start=0, stop=number)
-print("Data sample readed------------------------------------------")
-#phsp_ori = root_numpy.root2array('/eos/user/c/cjiang/selected/MC/2018/plainized_PileupRweight_BuToMuMuK_SIM_2018_UL_MINIAODv1_all_aftercutJpsi0.root', treename='tree',branches=columns, start=0, stop=200000)
-#phsp_ori = root_numpy.root2array('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/recoMCDataset_b4_2017.root', treename='ntuple',branches=columns, start=0, stop=100000)
-phsp_ori = root_numpy.tree2array(MC,branches=columns,start=0, stop=number)
+phsp_ori = root_numpy.tree2array(MC,branches=columns)#,start=0, stop=number)
 print("MC sample readed------------------------------------------")
-# JpsiK dataset's SWeights to extract signal peak to compare with MC distribution
-JpsiKSignal_SW = root_numpy.root2array('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/SWtree_{}.root'.format(year),treename='tree_sw', branches=sw_branch, start=0, stop=number)
-print("Sweights readed------------------------------------------")
 
 #Translate data into pandas formation
-data_only_X=pd.DataFrame(data_ori,columns=columns)
-phsp_only_X=pd.DataFrame(phsp_ori,columns=columns)
-corrdata = data_only_X.corr()
-plt.figure(dpi=400,figsize=(20,20))
-datamap = sb.heatmap(corrdata, cmap="Blues", annot=True)
-datafig = datamap.get_figure()
-datafig.savefig("./Corplot/datacor{}.png".format(year))
-
-corrMC = phsp_only_X.corr()
-plt.figure(dpi=400,figsize=(20,20))
-MCmap = sb.heatmap(corrMC, cmap="Blues", annot=True)
-MCfig = MCmap.get_figure()
-MCfig.savefig("./Corplot/MCcor{}.png".format(year))
-
-sys.exit(0)
-
-
-
-sw_sig_RD_X=pd.DataFrame(JpsiKSignal_SW)
-data_signal_sumEntries = (sw_sig_RD_X.sum())[0]
-print("data_signal_sumEntries = {0}",(sw_sig_RD_X.sum())[0])
-sf_phsp_vs_data=(len(phsp_only_X))/(data_signal_sumEntries)
+phsp_only_X=pd.DataFrame(phsp_ori)
 
 #Make labels for each data, data marks as 1, MC marks as 0 
-data_only_Y=np.ones(len(data_only_X))
 phsp_only_Y=np.zeros(len(phsp_only_X))
 
-data=pd.DataFrame(data_ori)
 phsp=pd.DataFrame(phsp_ori)
-sw_sig_RD=np.ones(len(phsp_ori))
-
-#for MC truth information
-
-
 
 # In[7]:
 
-#Tanslate into array format
-data_only_a=np.array(data)
-#print("data_only_a")
-#print(data_only_a)
 phsp_only_a=np.array(phsp)
-#print("phsp_only_a")
-#print(phsp_only_a)
-sw_sig_RD_a=np.array(sw_sig_RD_X)
-sw_sig_RD_a=sw_sig_RD_a.reshape(-1,1)
-#print("sw_sig_RD_a")
-#print(sw_sig_RD_a)
-
-if((data_only_a.shape)[0] > (sw_sig_RD_a.shape)[0]): 
-    sw_sig_RD_a=np.concatenate([sw_sig_RD_a, (np.ones((len(data_only_a) - len(sw_sig_RD_a),1)).reshape(-1,1))], axis=0)
-    #sw_sig_RD_a=np.concatenate([sw_sig_RD_a, [1] * ((data_only_a.shape)[0] - (sw_sig_RD_a.shape)[0])], axis=0)
-if((data_only_a.shape)[0] < (sw_sig_RD_a.shape)[0]): 
-    data_only_a=np.concatenate([data_only_a, (np.zeros((len(sw_sig_RD_a) - len(data_only_a),1)).reshape(-1,1))], axis=0)
-    #data_only_a=np.concatenate([data_only_a, [0] * ((sw_sig_RD_a.shape)[0] - (data_only_a.shape)[0])], axis=0)
-#sf_phsp_vs_data=((phsp_only_a.shape())[0])/((data_only_a.shape())[0])
-
-
-#Shuffle the data and split the data
-from sklearn.model_selection import train_test_split
-data_all = np.concatenate([data_only_a, phsp_only_a], axis=0)
-#print("data_all")
-#print(data_all)
-ones_phsp = (np.array([1]*len(phsp_only_a))).reshape(-1,1)
-sw_sig_RD_a = sf_phsp_vs_data * sw_sig_RD_a
-sweights_all = np.concatenate([sw_sig_RD_a, ones_phsp], axis=0) 
-#for k in range(0,len(sweights_all)): sweights_all[k][0] = 1
-#print("sweights_all")
-#print(sweights_all)
-data_all = np.concatenate([data_all, sweights_all], axis=1)
-#print("new_data_all")
-#print(data_all)
-labels_all = np.array([1] * len(data_only_a) + [0] * len(phsp_only_a))
-#print("new_labels_all")
-#print(labels_all)
-train_X,test_X,train_Y,test_Y=train_test_split(data_all,labels_all,test_size=0.1,stratify=labels_all)
-
 
 # In[8]:
 # ## Initial the xgboost
 
-sw_train = train_X[:,-1]
-#sw_train = sw_train.reshape(1,-1)
-sw_train = sw_train.tolist()
-#print("sw_train")
-#print(sw_train)
-sw_test = test_X[:,-1]
-#sw_test = sw_test.reshape(1,-1)
-sw_test = sw_test.tolist()
-#print("sw_test")
-#print(sw_test)
-train_X = train_X[:,:-1]
-#print("train_X")
-#print(train_X)
-test_X = test_X[:,:-1]
-#print("test_X")
-#print(test_X)
-
 #Prepare the input data for XGBoost
-print("xg_train")
-xg_train = xgb.DMatrix(train_X, label=train_Y, weight=sw_train)
-print("xg_test")
-xg_test = xgb.DMatrix(test_X, label=test_Y, weight=sw_test)
-print("xg_data_only")
-xg_data_only = xgb.DMatrix(data_only_X, label=data_only_Y, weight=(sw_sig_RD_a))
-print("xg_phsp_only")
 xg_phsp_only = xgb.DMatrix(phsp_only_X, label=phsp_only_Y)
-
-'''
-params={
-'booster':'gbtree',
-'silent':0 ,#设置成1则没有运行信息输出，最好是设置为0.
-#'nthread':7,# cpu 线程数 默认最大
-'eta': 0.007, # 如同学习率
-'min_child_weight':3, 
-# 这个参数默认是 1，是每个叶子里面 h 的和至少是多少，对正负样本不均衡时的 0-1 分类而言
-#，假设 h 在 0.01 附近，min_child_weight 为 1 意味着叶子节点中最少需要包含 100 个样本。
-#这个参数非常影响结果，控制叶子节点中二阶导的和的最小值，该参数值越小，越容易 overfitting。
-'max_depth':6, # 构建树的深度，越大越容易过拟合
-'gamma':0.1,  # 树的叶子节点上作进一步分区所需的最小损失减少,越大越保守，一般0.1、0.2这样子。
-'subsample':0.7, # 随机采样训练样本
-'colsample_bytree':0.7, # 生成树时进行的列采样 
-'lambda':2,  # 控制模型复杂度的权重值的L2正则化项参数，参数越大，模型越不容易过拟合。
-#'alpha':0, # L1 正则项参数
-#'scale_pos_weight':1, #如果取值大于0的话，在类别样本不平衡的情况下有助于快速收敛。
-#'objective': 'multi:softmax', #多分类的问题
-'num_class':2, # 类别数，多分类与 multisoftmax 并用
-'seed':1000, #随机种子
-#'eval_metric': 'auc'
-}
-'''
-
-# setup parameters for xgboost
-params = {}
-# use softmax multi-class classification
-params['objective'] = 'multi:softmax'
-# scale weight of positive examples
-params['eta'] = 0.1
-params['max_depth'] = 7
-params['silent'] = 1
-params['nthread'] = 4
-params['num_class'] = 2
-
-# do the same thing again, but output probabilities
-params['objective'] = 'multi:softprob'
-watchlist = [(xg_train, 'train'), (xg_test, 'test')]
-num_round = 200 # 迭代次数
-print("training==================================")
-bst = xgb.train(params, xg_train, num_round, watchlist)
 
 
 # In[9]:
 
 print("Machine learning------------------------------------------")
 
-#Calculate the error from the XGBoost, this number could be large because the data has large number of phsp component. XGBoost can not distinguish them correctly.
-###pred_prob = bst.predict(xg_test).reshape(test_Y.shape[0], 2)
-###pred_label = np.argmax(pred_prob, axis=1)
-
-###error_rate = np.sum(pred_label != test_Y) / test_Y.shape[0]
-###print('Test error using softprob = {}'.format(error_rate))
-
 Save_Dir = './fulldata_trained_model_{}.json'.format(year)
-print(('Save the trained XGBoost model in {0}').format(Save_Dir))
-bst.save_model(Save_Dir)
 
 # In[10]:
 
-
-#Calculate weight for each event using probability
-###pr_test=np.array(bst.predict(xg_test,validate_features=False).reshape(test_Y.shape[0], 2))
-###pr_phsp=np.array(bst.predict(xg_phsp_only,validate_features=False).reshape(phsp_only_Y.shape[0], 2))
-
-###trained_bst = xgb.Booster()
-###trained_bst = trained_bst.load_model(Save_Dir)
+#trained_bst = xgb.Booster()
+#trained_bst = trained_bst.load_model(Save_Dir)
 trained_bst = xgb.Booster(model_file=Save_Dir)
 pr_phsp=np.array(trained_bst.predict(xg_phsp_only,validate_features=False).reshape(phsp_only_Y.shape[0], 2))
 
@@ -798,7 +585,7 @@ print(weight_phsp)
 
 print("MC weights------------------------------------------")
 
-MCwFile = r.TFile("./JPsiK_data_MC_weights_{}.root".format(year),"RECREATE")
+MCwFile = r.TFile("./Psi2SK_data_MC_weights_{}.root".format(year),"RECREATE")
 
 for val in weight_phsp:
     leafValues[0] = val
