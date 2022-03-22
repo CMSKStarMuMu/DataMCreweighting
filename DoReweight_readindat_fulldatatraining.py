@@ -13,7 +13,7 @@
 #     root_numpy (using python 2.7, download root_numpy from official web and install by hand)
 
 # In[1]:
-
+#version 1 in github issue with noly B pt and all significance divide into value and error
 
 from __future__ import division
 #get_ipython().run_line_magic('pylab', 'inline')
@@ -88,11 +88,11 @@ variable("bDCABSE","bDCABSE",[100, 0, 0.01]) #significance
 variable("bDCABSsig","bDCABSsig",[100, -5, 5])
 
 variable("kstTrk1DCABS","kstTrk1DCABS",[100, -1, 1])
-variable("kstTrk1DCABSE"," kstTrk1DCABSE",[100, 0, 0.5]) #significance
+variable("kstTrk1DCABSE"," kstTrk1DCABSE",[100, 0, 0.025]) #significance
 variable("kstTrk1DCABSsig"," kstTrk1DCABSsig",[100, -50,50])
 
 variable("kstTrk2DCABS","kstTrk2DCABS",[100, -1, 1])
-variable("kstTrk2DCABSE"," kstTrk2DCABSE",[100, 0, 0.5]) #significance
+variable("kstTrk2DCABSE"," kstTrk2DCABSE",[100, 0, 0.025]) #significance
 variable("kstTrk2DCABSsig"," kstTrk2DCABSsig",[100, -50,50])
 
 variable("kstTrk2MinIP2D","kstTrk2MinIP2D ",[100, 0, 1])
@@ -499,13 +499,13 @@ columns_draw = [
                 "mupPt","mupEta","mupPhi",
                 #"kstTrk1Pt","kstTrk1Eta","kstTrk1Phi",
                 #"kstTrk2Pt","kstTrk2Eta","kstTrk2Phi",
-                "kstTrk1Pt","kstTrk1Eta","kstTrk1Phi",
                 "kstTrk2Pt","kstTrk2Eta","kstTrk2Phi",
+                "kstTrk1Pt","kstTrk1Eta","kstTrk1Phi",
                 "cos_theta_l","cos_theta_k","phi_kst_mumu",
-                #"kstTrk1DCABS","kstTrk1DCABSE","kstTrk1DCABSsig","kstTrk1MinIP2D",
-                #"kstTrk2DCABS","kstTrk1pCABSE","kstTrk2DCABSsig","kstTrk2MinIP2D",
-                "kstTrk1DCABSsig","kstTrk1MinIP2D",
-                "kstTrk2DCABSsig","kstTrk2MinIP2D",
+                "kstTrk1DCABS","kstTrk1DCABSE","kstTrk1DCABSsig","kstTrk1MinIP2D",
+                "kstTrk2DCABS","kstTrk2DCABSE","kstTrk2DCABSsig","kstTrk2MinIP2D",
+                #"kstTrkmDCABSsig","kstTrkmMinIP2D",
+                #"kstTrkpDCABSsig","kstTrkpMinIP2D",
                 "sum_isopt_04"
 
                 ]
@@ -539,11 +539,11 @@ else:
     rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoDATADataset_b4_2018_2_3_.root')
 rdata.AddFriend("tree_sw","/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/SWtree_{}.root".format(year))
 '''
-rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/finaltree/recoDATADataset_b{}_{}_p{}.root'.format(q2Bin,year,parity))
+rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv1/recoDATADataset_b{}_{}_p{}.root'.format(q2Bin,year,parity))
 
 
 MC = r.TChain("ntuple")
-MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/finaltree/recoMCDataset_b{}_{}_p{}.root'.format(q2Bin,year,parity))
+MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv1/recoMCDataset_b{}_{}_p{}.root'.format(q2Bin,year,parity))
 #MC.Add('/eos/user/c/cjiang/selected/MC/2018/plainized_PileupRweight_BuToMuMuK_SIM_2018_UL_MINIAODv1_all_aftercutJpsi0.root')
 '''MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoMCDataset_b4_{}_0_4_.root'.format(year))
 MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/recoMCDataset_b4_{}_1_4_.root'.format(year))
@@ -574,7 +574,7 @@ print("Training samples preparation------------------------------------------")
 #columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrkmDCABSsig', 'kstTrkpDCABSsig','kstTrkmMinIP2D','kstTrkpMinIP2D','sum_isopt_04','bPt','bEta','bPhi','kstTrkmPt','kstTrkmEta','kstTrkmPhi','kstTrkpPt','kstTrkpEta','kstTrkpPhi','mumPt','mumEta','mumPhi','mupPt','mupEta','mupPhi']
 #columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrk1DCABSsig', 'kstTrk2DCABSsig','kstTrk1MinIP2D','kstTrk2MinIP2D','sum_isopt_04','bPt','kstTrk1Pt','kstTrk2Pt','mumPt','mupPt','bEta','kstTrk1Eta','kstTrk2Eta','mumEta','mupEta','bPhi','kstTrk1Phi','kstTrk2Phi','mumPhi','mupPhi']
 #this columns is the final change now
-columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrk1DCABSsig', 'kstTrk2DCABSsig','kstTrk1MinIP2D','kstTrk2MinIP2D','sum_isopt_04','bPt','bEta','bPhi','kstTrk1Pt','kstTrk2Pt','mumPt','mupPt']
+columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bCosAlphaBS', 'bDCABS','bDCABSE', 'kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','kstTrk1MinIP2D','kstTrk2MinIP2D','sum_isopt_04','bPt','bEta','bPhi']#,'kstTrk1Pt','kstTrk2Pt','mumPt','mupPt']
 #columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrkmDCABSsig', 'kstTrkpDCABSsig','kstTrkmMinIP2D','kstTrkpMinIP2D','sum_isopt_04','bPt','bEta','bPhi']
 sw_branch = ['nsigb4p1_{}_sw'.format(year)]
 
@@ -756,7 +756,7 @@ print("Machine learning------------------------------------------")
 ###error_rate = np.sum(pred_label != test_Y) / test_Y.shape[0]
 ###print('Test error using softprob = {}'.format(error_rate))
 
-Save_Dir = './fulldata_trained_model_{}.json'.format(year)
+Save_Dir = './fulldata_trained_model_{}_gitv1.json'.format(year)
 print(('Save the trained XGBoost model in {0}').format(Save_Dir))
 bst.save_model(Save_Dir)
 
@@ -781,7 +781,7 @@ print(weight_phsp)
 
 print("MC weights------------------------------------------")
 
-MCwFile = r.TFile("./JPsiK_data_MC_weights_{}.root".format(year),"RECREATE")
+MCwFile = r.TFile("./JPsiK_data_MC_newweights_gitv1_{}.root".format(year),"RECREATE")
 
 for val in weight_phsp:
     leafValues[0] = val

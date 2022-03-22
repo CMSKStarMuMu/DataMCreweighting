@@ -65,13 +65,13 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
   TChain* t_num = new TChain();
   string year_str = Form("201%i", year);
   if (data==0 && isLMNR)
-    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/201%iMC_LMNR.root/ntuple", year, year));
+    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/fixBkg/201%iMC_LMNR_newphi_punzi_removeTkMu_fixBkg_B0Psicut_addxcutvariable.root/ntuple", year, year));
   else if (data==0 && isJpsi)
-    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/201%iMC_JPSI.root/ntuple", year, year));
+    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/fixBkg/201%iMC_JPSI_newphi_punzi_removeTkMu_fixBkg_B0Psicut_addxcutvariable.root/ntuple", year, year));
   else if (data==0 && isPsi)
-    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/201%iMC_PSI.root/ntuple", year, year));
+    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/fixBkg/201%iMC_PSI_newphi_punzi_removeTkMu_fixBkg_B0Psicut_addxcutvariable.root/ntuple", year, year));
   else
-    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/201%iData_All_finalSelection.root/ntuple", year, year));
+    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/fixBkg/201%idata_newphi_punzi_removeTkMu_fixBkg_B0Psicut_addxcutvariable.root/ntuple", year, year));
   int numEntries = t_num->GetEntries();
   std::cout << numEntries << std::endl;
   int counter;
@@ -99,7 +99,7 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
 
 
   double kstTrkmPt,kstTrkpPt,kstTrkmMinIP2D,kstTrkpMinIP2D,kstTrkmEta,kstTrkpEta,kstTrkmPhi,kstTrkpPhi;
-  double kstTrk1Pt,kstTrk2Pt,kstTrk1DCABSsig,kstTrk2DCABSsig,kstTrk1MinIP2D,kstTrk2MinIP2D,kstTrk1Eta,kstTrk2Eta,kstTrk1Phi,kstTrk2Phi;
+  double kstTrk1Pt,kstTrk2Pt,kstTrk1DCABS,kstTrk1DCABSE,kstTrk1DCABSsig,kstTrk2DCABS,kstTrk2DCABSE,kstTrk2DCABSsig,kstTrk1MinIP2D,kstTrk2MinIP2D,kstTrk1Eta,kstTrk2Eta,kstTrk1Phi,kstTrk2Phi;
 
   t_num->SetBranchAddress("kstTrkmPt",&kstTrkmPt);
   t_num->SetBranchAddress("kstTrkmMinIP2D",&kstTrkmMinIP2D);
@@ -113,12 +113,16 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
 
   t_sel->Branch("kstTrk1Pt",&kstTrk1Pt);
   t_sel->Branch("kstTrk1DCABSsig",&kstTrk1DCABSsig);
+  t_sel->Branch("kstTrk1DCABS",&kstTrk1DCABS);
+  t_sel->Branch("kstTrk1DCABSE",&kstTrk1DCABSE);
   t_sel->Branch("kstTrk1MinIP2D",&kstTrk1MinIP2D);
   t_sel->Branch("kstTrk1Eta",&kstTrk1Eta);
   t_sel->Branch("kstTrk1Phi",&kstTrk1Phi);
 
   t_sel->Branch("kstTrk2Pt",&kstTrk2Pt);
   t_sel->Branch("kstTrk2DCABSsig",&kstTrk2DCABSsig);
+  t_sel->Branch("kstTrk2DCABS",&kstTrk2DCABS);
+  t_sel->Branch("kstTrk2DCABSE",&kstTrk2DCABSE);
   t_sel->Branch("kstTrk2MinIP2D",&kstTrk2MinIP2D);
   t_sel->Branch("kstTrk2Eta",&kstTrk2Eta);
   t_sel->Branch("kstTrk2Phi",&kstTrk2Phi);
@@ -227,12 +231,16 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
       if (kstTrkmPt>=kstTrkpPt){
         kstTrk1Pt=kstTrkmPt;
         kstTrk1DCABSsig=kstTrkmDCABSsig;
+        kstTrk1DCABS=kstTrkmDCABS;
+        kstTrk1DCABSE=kstTrkmDCABSE;
         kstTrk1MinIP2D=kstTrkmMinIP2D;
         kstTrk1Eta=kstTrkmEta;
         kstTrk1Phi=kstTrkmPhi;
 
         kstTrk2Pt=kstTrkpPt;
         kstTrk2DCABSsig=kstTrkpDCABSsig;
+        kstTrk2DCABS=kstTrkpDCABS;
+        kstTrk2DCABSE=kstTrkpDCABSE;
         kstTrk2MinIP2D=kstTrkpMinIP2D;
         kstTrk2Eta=kstTrkpEta;
         kstTrk2Phi=kstTrkpPhi;
@@ -242,19 +250,23 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
       else {
         kstTrk2Pt=kstTrkmPt;
         kstTrk2DCABSsig=kstTrkmDCABSsig;
+        kstTrk2DCABS=kstTrkmDCABS;
+        kstTrk2DCABSE=kstTrkmDCABSE;
         kstTrk2MinIP2D=kstTrkmMinIP2D;
         kstTrk2Eta=kstTrkmEta;
         kstTrk2Phi=kstTrkmPhi;
 
         kstTrk1Pt=kstTrkpPt;
         kstTrk1DCABSsig=kstTrkpDCABSsig;
+        kstTrk1DCABS=kstTrkpDCABS;
+        kstTrk1DCABSE=kstTrkpDCABSE;
         kstTrk1MinIP2D=kstTrkpMinIP2D;
         kstTrk1Eta=kstTrkpEta;
         kstTrk1Phi=kstTrkpPhi;
         
       }
       //if (eventN%2!=parity) continue;
-      if (recoB0Mass <5.0 || recoB0Mass > 5.6) continue;
+      if (recoB0Mass <4.9 || recoB0Mass > 5.7) continue; // needed for WT shape construction
       if (recoCosThetaK >1.0 || recoCosThetaK < -1.0) continue;
       if (recoCosThetaL >1.0 || recoCosThetaL < -1.0) continue;
       if (recoPhi > 3.14159 || recoPhi<-3.14159 ) continue;
@@ -337,7 +349,7 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
         ws_od[i]->import( *data_wtRECO_od[i] );*/
 
       //TFile* fout = new TFile( ( "/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/reco"+dataString+"Dataset_"+shortString[i]+ "_" + year_str + ".root" ).c_str(), "RECREATE" );
-      TFile* fout = new TFile( ( "/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/finaltree/reco"+dataString+"Dataset_"+shortString[i]+ "_" + year_str + frac + ".root" ).c_str(), "RECREATE" );      
+      TFile* fout = new TFile( ( "/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv1/reco"+dataString+"Dataset_"+shortString[i]+ "_" + year_str + frac + ".root" ).c_str(), "RECREATE" );      
       t_sel->Write();
       //ws_ev[i]->Write();
       //ws_od[i]->Write();
@@ -485,29 +497,37 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
       kstTrkmDCABSsig = kstTrkmDCABS/kstTrkmDCABSE;
       kstTrkpDCABSsig = kstTrkpDCABS/kstTrkpDCABSE;
       if (kstTrkmPt>=kstTrkpPt){
+
         kstTrk1Pt=kstTrkmPt;
         kstTrk1DCABSsig=kstTrkmDCABSsig;
+        kstTrk1DCABS=kstTrkmDCABS;
+        kstTrk1DCABSE=kstTrkmDCABSE;
         kstTrk1MinIP2D=kstTrkmMinIP2D;
         kstTrk1Eta=kstTrkmEta;
         kstTrk1Phi=kstTrkmPhi;
 
         kstTrk2Pt=kstTrkpPt;
         kstTrk2DCABSsig=kstTrkpDCABSsig;
+        kstTrk2DCABS=kstTrkpDCABS;
+        kstTrk2DCABSE=kstTrkpDCABSE;
         kstTrk2MinIP2D=kstTrkpMinIP2D;
         kstTrk2Eta=kstTrkpEta;
         kstTrk2Phi=kstTrkpPhi;
-
       }
 
       else {
         kstTrk2Pt=kstTrkmPt;
         kstTrk2DCABSsig=kstTrkmDCABSsig;
+        kstTrk2DCABS=kstTrkmDCABS;
+        kstTrk2DCABSE=kstTrkmDCABSE;
         kstTrk2MinIP2D=kstTrkmMinIP2D;
         kstTrk2Eta=kstTrkmEta;
         kstTrk2Phi=kstTrkmPhi;
 
         kstTrk1Pt=kstTrkpPt;
         kstTrk1DCABSsig=kstTrkpDCABSsig;
+        kstTrk1DCABS=kstTrkpDCABS;
+        kstTrk1DCABSE=kstTrkpDCABSE;
         kstTrk1MinIP2D=kstTrkpMinIP2D;
         kstTrk1Eta=kstTrkpEta;
         kstTrk1Phi=kstTrkpPhi;
@@ -573,7 +593,7 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
       ws[i] = new RooWorkspace(("ws_"+shortString[i]+"p0").c_str(),"Workspace with single-bin data datasets");
       ws[i]->import( *data[i] );
       */
-      TFile* fout = new TFile( ( "/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/finaltree/reco"+dataString+"Dataset_"+shortString[i]+ "_" + year_str + frac + ".root" ).c_str(), "RECREATE" );
+      TFile* fout = new TFile( ( "/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv1/reco_49_57_"+dataString+"Dataset_"+shortString[i]+ "_" + year_str + frac + ".root" ).c_str(), "RECREATE" );
       //ws[i]->Write();
       t_sel->Write();
       fout->Close();

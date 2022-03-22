@@ -84,8 +84,12 @@ variable("bDCABS","bDCABS",[100, -0.015, 0.015])
 variable("bDCABSE","bDCABSE",[100, 0, 0.01]) #significance
 variable("bDCABSsig","bDCABSsig",[100, -5, 5])
 
+variable("kstTrk1DCABS","kstTrk1DCABS",[100, -1, 1])
+variable("kstTrk1DCABSE"," kstTrk1DCABSE",[100, 0, 0.025]) #significance
 variable("kstTrk1DCABSsig"," kstTrk1DCABSsig",[100, -50,50])
 
+variable("kstTrk2DCABS","kstTrk2DCABS",[100, -1, 1])
+variable("kstTrk2DCABSE"," kstTrk2DCABSE",[100, 0, 0.025]) #significance
 variable("kstTrk2DCABSsig"," kstTrk2DCABSsig",[100, -50,50])
 
 variable("kstTrk2MinIP2D","kstTrk2MinIP2D ",[100, 0, 1])
@@ -346,7 +350,7 @@ def plot_var(varname, cut="1", reweight=False):
     ############################################################################
     #c.SaveAs("Psi2SK_plots_fulldataapplication/data_vs_mc/"+wname+varname+".png")
     #c.SaveAs("Psi2SK_plots_fulldataapplication/data_vs_mc/"+wname+varname+".pdf")
-    c.SaveAs("plots/bin{}/{}/".format(q2Bin,year)+varname+".png")
+    c.SaveAs("plots/bin{}/{}_gitv1/".format(q2Bin,year)+varname+".png")
     
     #at the moment I'm saving the legend in a separate canvas EACH TIME. This is a quick workaraound and it is inefficient. It needs to be fixed later.
     cleg = r.TCanvas("legend","legend",500,350)
@@ -354,7 +358,7 @@ def plot_var(varname, cut="1", reweight=False):
     leg.AddEntry(hdata, "data", "ep")
     leg.AddEntry(hMC, "simulation", "f")
     leg.Draw()
-    cleg.SaveAs("plots/bin{}/{}/".format(q2Bin,year)+"/legend"+".png")
+    cleg.SaveAs("plots/bin{}/{}_gitv1/".format(q2Bin,year)+"/legend"+".png")
     #cleg.SaveAs("Psi2SK_plots_fulldataapplication/data_vs_mc/legend"+".pdf")
     
 
@@ -432,20 +436,20 @@ def plot_var(varname, cut="1", reweight=False):
     line_3In1 = r.TLine(hratio_3In1.GetXaxis().GetXmin(),1,hratio_3In1.GetXaxis().GetXmax(), 1)
     line_3In1.SetLineStyle(3)
     line_3In1.Draw()
-    c_3In1.SaveAs("plots/bin{}/{}/".format(q2Bin,year)+varname+"_3In1.png")
+    c_3In1.SaveAs("plots/bin{}/{}_gitv1/".format(q2Bin,year)+varname+"_3In1.png")
     cleg_3In1 = r.TCanvas("legend_3In1","legend_3In1",500,350)
     leg_3In1 = r.TLegend(0.1,0.1,0.9,0.9)
     leg_3In1.AddEntry(hdata, "data", "ep")
     leg_3In1.AddEntry(hMC, "simulation", "lf")
     leg_3In1.AddEntry(hWMC, "RW simulation", "lf")
     leg_3In1.Draw()
-    cleg_3In1.SaveAs("plots/bin{}/{}/".format(q2Bin,year)+"legend"+"_3In1.png")
+    cleg_3In1.SaveAs("plots/bin{}/{}_gitv1/".format(q2Bin,year)+"legend"+"_3In1.png")
     cleg_ratio_3In1 = r.TCanvas("legend_3In1","legend_3In1",500,350)
     leg_ratio_3In1 = r.TLegend(0.1,0.1,0.9,0.9)
     leg_ratio_3In1.AddEntry(hratio_RDvsMC, "RD/MC", "ep")
     leg_ratio_3In1.AddEntry(hratio_RDvsWMC, "RD/RWMC", "ep")
     leg_ratio_3In1.Draw()
-    cleg_ratio_3In1.SaveAs("plots/bin{}/{}/".format(q2Bin,year)+"legend"+"_ratio_3In1.png")
+    cleg_ratio_3In1.SaveAs("plots/bin{}/{}_gitv1/".format(q2Bin,year)+"legend"+"_ratio_3In1.png")
     #=================
     #c_3In1.Delete()
     #hs_3In1.Delete()
@@ -482,13 +486,13 @@ columns_draw = [
                 "mupPt","mupEta","mupPhi",
                 #"kstTrk1Pt","kstTrk1Eta","kstTrk1Phi",
                 #"kstTrk2Pt","kstTrk2Eta","kstTrk2Phi",
-                "kstTrk1Pt","kstTrk1Eta","kstTrk1Phi",
                 "kstTrk2Pt","kstTrk2Eta","kstTrk2Phi",
+                "kstTrk1Pt","kstTrk1Eta","kstTrk1Phi",
                 "cos_theta_l","cos_theta_k","phi_kst_mumu",
-                #"kstTrk1DCABS","kstTrk1DCABSE","kstTrk1DCABSsig","kstTrk1MinIP2D",
-                #"kstTrk2DCABS","kstTrk1pCABSE","kstTrk2DCABSsig","kstTrk2MinIP2D",
-                "kstTrk1DCABSsig","kstTrk1MinIP2D",
-                "kstTrk2DCABSsig","kstTrk2MinIP2D",
+                "kstTrk1DCABS","kstTrk1DCABSE","kstTrk1DCABSsig","kstTrk1MinIP2D",
+                "kstTrk2DCABS","kstTrk2DCABSE","kstTrk2DCABSsig","kstTrk2MinIP2D",
+                #"kstTrkmDCABSsig","kstTrkmMinIP2D",
+                #"kstTrkpDCABSsig","kstTrkpMinIP2D",
                 "sum_isopt_04"
 
                 ]
@@ -502,13 +506,13 @@ cut_bpeak = "(tagged_mass>5.0 && tagged_mass<5.6)"
 
 
 rdata = r.TChain("ntuple")
-rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/finaltree/recoDATADataset_b{}_{}_p{}.root'.format(q2Bin,year,parity))
+rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv1/recoDATADataset_b{}_{}_p{}.root'.format(q2Bin,year,parity))
 
 #rdata.Add('/eos/user/c/cjiang/selected/data/2018/Psi2SK/after_preselection_after_plainized/plainized_data_cutPsip0_all_2018_UL_MINIAODv1_all_aftercutPsip0.root')
 #rdata.AddFriend("tree_sw","/afs/cern.ch/work/c/cjiang/selectUL/CMSSW_10_6_20/src/sel/data/2018/copytree_all_cutPsip0/splot_for_psi2sk_data/tree_sw.root")
 
 MC = r.TChain("ntuple")
-MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/finaltree/recoMCDataset_b{}_{}_p{}.root'.format(q2Bin,year,parity))
+MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv1/recoMCDataset_b{}_{}_p{}_49_57.root'.format(q2Bin,year,parity))
 #MC.Add('/eos/user/c/cjiang/selected/MC/2018/Psi2SK/after_preselection_after_plainized/plainized_PileupRweight_BuToMuMuK_SIM_2018_UL_MINIAODv1_all_aftercutPsip0.root')
 
 MC_friend = r.TTree("wTree", "weights tree")
@@ -538,7 +542,8 @@ print("Training samples preparation------------------------------------------")
 
 #columns = ['Trkdcasigbs','Bvtxcl','Blxysig','TrkPt','Bcosalphabs','MumEta','MumPhi']
 #columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrkmDCABSsig', 'kstTrkpDCABSsig','kstTrkmMinIP2D','kstTrkpMinIP2D','sum_isopt_04','bPt','kstTrkmPt','kstTrkpPt','mumPt','mupPt','bEta','kstTrkmEta','kstTrkpEta','mumEta','mupEta','bPhi','kstTrkmPhi','kstTrkpPhi','mumPhi','mupPhi']
-columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrk1DCABSsig', 'kstTrk2DCABSsig','kstTrk1MinIP2D','kstTrk2MinIP2D','sum_isopt_04','bPt','bEta','bPhi','kstTrk1Pt','kstTrk2Pt','mumPt','mupPt']
+#columns = ['bVtxCL', 'bLBSsig', 'bCosAlphaBS', 'bDCABSsig', 'kstTrk1DCABSsig', 'kstTrk2DCABSsig','kstTrk1MinIP2D','kstTrk2MinIP2D','sum_isopt_04','bPt','bEta','bPhi']#,'kstTrk1Pt','kstTrk2Pt','mumPt','mupPt']
+columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bCosAlphaBS', 'bDCABS','bDCABSE', 'kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','kstTrk1MinIP2D','kstTrk2MinIP2D','sum_isopt_04','bPt','bEta','bPhi']
 sw_branch = ['nsigb{}p1_{}_sw'.format(q2Bin,year)]
 
 #Read data using root_numpy, define the tree name, branch list
@@ -569,7 +574,7 @@ xg_phsp_only = xgb.DMatrix(phsp_only_X, label=phsp_only_Y)
 
 print("Machine learning------------------------------------------")
 
-Save_Dir = './fulldata_trained_model_{}.json'.format(year)
+Save_Dir = './fulldata_trained_model_{}_gitv1.json'.format(year)
 
 # In[10]:
 
@@ -587,7 +592,7 @@ print(weight_phsp)
 
 print("MC weights------------------------------------------")
 
-MCwFile = r.TFile("./data_MC_weights_{}_b{}p{}.root".format(year,q2Bin,parity),"RECREATE")
+MCwFile = r.TFile("./data_MC_weights_{}_b{}p{}_gitv1_49_57.root".format(year,q2Bin,parity),"RECREATE")
 
 for val in weight_phsp:
     leafValues[0] = val
@@ -597,7 +602,7 @@ MCwFile.cd()
 MC_friend.Write()
 
 MC.AddFriend(MC_friend)
-for v in variables.keys(): plot_var(v, cut_bpeak, True)
+#for v in variables.keys(): plot_var(v, cut_bpeak, True)
 
 #MCwFile.Close()
 
