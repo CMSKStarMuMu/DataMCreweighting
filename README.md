@@ -1,6 +1,36 @@
 # DataMCreweighting
 Reweighting code of data/MC difference
 
+
+
+## Apply the existing model without comparing
+
+
+Adapt existing model 
+
+ ***fulldata_trained_model_2018_gitv2_onlyRECO_addPhi.json***
+
+to other q2Bins you can just use 
+
+***Application.py***
+
+Change the input MC file in line 515, input json file in line 577, and output MC weights tree in line 595
+
+Then use 
+
+```sh
+python Application.py q2Bin parity year
+```
+
+If need to save the weights in ntuple
+
+```sh
+python Addreweight.py q2Bin parity year
+```
+
+
+If you want to train from beginning, please follow 
+
 ## Create Dataset
 
 ```sh

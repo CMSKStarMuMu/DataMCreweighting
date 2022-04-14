@@ -502,17 +502,17 @@ columns_draw = [
 print("TTrees preparation------------------------------------------")
 
 #cut_bpeak = "(Bmass>5.0 && Bmass<5.5)"
-cut_bpeak = "(tagged_mass>5.0 && tagged_mass<5.6)"
+#cut_bpeak = "(tagged_mass>5.0 && tagged_mass<5.6)"
 
 
-rdata = r.TChain("ntuple")
-rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv2/recoDATADataset_b{}_{}_p{}_aftersel.root'.format(q2Bin,year,parity))
+#rdata = r.TChain("ntuple")
+#rdata.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv2/recoDATADataset_b{}_{}_p{}_aftersel.root'.format(q2Bin,year,parity))
 
 #rdata.Add('/eos/user/c/cjiang/selected/data/2018/Psi2SK/after_preselection_after_plainized/plainized_data_cutPsip0_all_2018_UL_MINIAODv1_all_aftercutPsip0.root')
 #rdata.AddFriend("tree_sw","/afs/cern.ch/work/c/cjiang/selectUL/CMSSW_10_6_20/src/sel/data/2018/copytree_all_cutPsip0/splot_for_psi2sk_data/tree_sw.root")
 
 MC = r.TChain("ntuple")
-MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv2/recoMCDataset_b{}_{}_p{}_aftersel.root'.format(q2Bin,year,parity))
+MC.Add('/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv2/recoMCDataset_b{}_{}_p{}.root'.format(q2Bin,year,parity))
 #MC.Add('/eos/user/c/cjiang/selected/MC/2018/Psi2SK/after_preselection_after_plainized/plainized_PileupRweight_BuToMuMuK_SIM_2018_UL_MINIAODv1_all_aftercutPsip0.root')
 
 MC_friend = r.TTree("wTree", "weights tree")
@@ -592,7 +592,7 @@ print(weight_phsp)
 
 print("MC weights------------------------------------------")
 
-MCwFile = r.TFile("./data_MC_weights_{}_b{}p{}_gitv2_onlyRECO_forplot_addPhi.root".format(year,q2Bin,parity),"RECREATE")
+MCwFile = r.TFile("./data_MC_weights_{}_b{}p{}_gitv2_onlyRECO_addPhi.root".format(year,q2Bin,parity),"RECREATE")
 
 for val in weight_phsp:
     leafValues[0] = val
@@ -602,7 +602,7 @@ MCwFile.cd()
 MC_friend.Write()
 
 MC.AddFriend(MC_friend)
-for v in variables.keys(): plot_var(v, cut_bpeak, True)
+#for v in variables.keys(): plot_var(v, cut_bpeak, True)
 
 #MCwFile.Close()
 

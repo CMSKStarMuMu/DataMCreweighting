@@ -63,15 +63,18 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
 
   // Load ntuples
   TChain* t_num = new TChain();
+  TChain *t_data = new TChain();
   string year_str = Form("201%i", year);
   if (data==0 && isLMNR)
     t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/fixBkg/201%iMC_LMNR_newphi_punzi_removeTkMu_fixBkg_B0Psicut_addxcutvariable.root/ntuple", year, year));
   else if (data==0 && isJpsi)
-    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/fixBkg/201%iMC_JPSI_newphi_punzi_removeTkMu_fixBkg_B0Psicut_addxcutvariable.root/ntuple", year, year));
+    t_num->Add("/eos/cms/store/user/fiorendi/p5prime/2018/skims/newphi/fixBkg/ntuples_with_pt_eta_weights/MC_JPSI_2018_preBDT_addEtaW.root/ntuple");
   else if (data==0 && isPsi)
-    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/fixBkg/201%iMC_PSI_newphi_punzi_removeTkMu_fixBkg_B0Psicut_addxcutvariable.root/ntuple", year, year));
+    //t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/fixBkg/201%iMC_PSI_newphi_punzi_removeTkMu_fixBkg_B0Psicut_addxcutvariable.root/ntuple", year, year));
+    t_num->Add("/eos/cms/store/user/fiorendi/p5prime/2018/skims/newphi/fixBkg/ntuples_with_pt_eta_weights/MC_JPSI_2018_preBDT_addEtaW.root");
   else
-    t_num->Add(Form("/eos/cms/store/user/fiorendi/p5prime/201%i/skims/newphi/fixBkg/201%idata_newphi_punzi_removeTkMu_fixBkg_B0Psicut_addxcutvariable.root/ntuple", year, year));
+    t_num->Add("/eos/cms/store/user/fiorendi/p5prime/2018/skims/newphi/fixBkg/ntuples_with_pt_eta_weights/data_charmonium_2018_preBDT_fixBool_asSplot.root/ntuple");
+    t_data->Add("/eos/cms/store/user/fiorendi/p5prime/2018/skims/newphi/fixBkg/ntuples_with_pt_eta_weights/out_distribution_JPSI_2018A_2018D_L1all_preBDT.root/fulldata");
   int numEntries = t_num->GetEntries();
   std::cout << numEntries << std::endl;
   int counter;
@@ -136,18 +139,31 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
   t_num->SetBranchAddress( "phi_kst_mumu"    , &recoPhi       );
 
   // dimuon mass variables
-  double recoDimuMass;
+  double recoDimuMass,recoDimuMassE;
   t_num->SetBranchAddress( "mumuMass", &recoDimuMass );
-
+  t_num->SetBranchAddress( "mumuMassE", &recoDimuMassE );
   // B0 mass variable
   double recoB0Mass;
-  t_num->SetBranchAddress( "tagged_mass", &recoB0Mass );
+  double nsig_sw;
+  if(data==0){
+  t_sel->Branch( "tagged_mass", &recoB0Mass );}
+  else {
+  t_data->SetBranchAddress( "tagged_mass", &recoB0Mass );
+  t_data->SetBranchAddress( "nsig_sw", &nsig_sw);
+  t_sel->Branch("tagged_mass", &recoB0Mass);
+  t_sel->Branch("nsig_sw", &nsig_sw);
+  }
 
-  bool passB0Psi_lmnr, passB0Psi_jpsi, passB0Psi_psip;
+  int pass_preselection;
+  t_num->SetBranchAddress("pass_preselection",&pass_preselection);
+
+
+
+  /*bool passB0Psi_lmnr, passB0Psi_jpsi, passB0Psi_psip;
   t_num->SetBranchAddress( "passB0Psi_lmnr", &passB0Psi_lmnr );
   t_num->SetBranchAddress( "passB0Psi_jpsi", &passB0Psi_jpsi );
   t_num->SetBranchAddress( "passB0Psi_psip", &passB0Psi_psip );
-
+*/
   // B0-kinematic variables
   // double recoB0pT, recoB0eta;
   // t_num->SetBranchAddress( "bPt"    , &recoB0pT  );
@@ -155,6 +171,10 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
 
   double tagB0;
   t_num->SetBranchAddress( "tagB0"    , &tagB0     );
+
+  double bMass,bBarMass;
+  t_num->SetBranchAddress("bMass",&bMass);
+  t_num->SetBranchAddress("bBarMass",&bBarMass);
 
   // event number for even/odd splitting
   Long64_t eventN;
@@ -166,7 +186,7 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
   // keep it here for now since not finalized
   // as from https://github.com/CMSKStarMuMu/RooSideBand/blob/master/testSidebandFit.cc#L2592-L2661
 
-  double wt_mass, wt_kstarmass, kaonPt, pionPt, mmpiMass, mmkMass;
+  /*double wt_mass, wt_kstarmass, kaonPt, pionPt, mmpiMass, mmkMass;
   t_num->SetBranchAddress( "wt_mass",      &wt_mass      );
   t_num->SetBranchAddress( "wt_kstarmass", &wt_kstarmass );
   t_num->SetBranchAddress( "kaonPt",       &kaonPt       );
@@ -188,7 +208,7 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
   double CutX2=3.6;
   double CutY1=4.7;
   double CutY2=4.9;
-
+*/
   int xBin;
 
   // event pileup weight
@@ -224,10 +244,17 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
     counter=0;
     for (int iCand=frac1*numEntries; iCand<frac2*numEntries; ++iCand) {
       t_num->GetEntry(iCand);
+      if (tagB0==1){
+        recoB0Mass=bMass;
+      }
+      else{
+        recoB0Mass=bBarMass;
+      }
       bLBSsig = bLBS/bLBSE;
       bDCABSsig = bDCABS/bDCABSE;
       kstTrkmDCABSsig = kstTrkmDCABS/kstTrkmDCABSE;
       kstTrkpDCABSsig = kstTrkpDCABS/kstTrkpDCABSE;
+      //cout << "kstTrkmPt " << kstTrkmPt << endl;
       if (kstTrkmPt>=kstTrkpPt){
         kstTrk1Pt=kstTrkmPt;
         kstTrk1DCABSsig=kstTrkmDCABSsig;
@@ -249,6 +276,7 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
 
       else {
         kstTrk2Pt=kstTrkmPt;
+        //cout << "kstTrk2Pt" << kstTrk2Pt<< endl;
         kstTrk2DCABSsig=kstTrkmDCABSsig;
         kstTrk2DCABS=kstTrkmDCABS;
         kstTrk2DCABSE=kstTrkmDCABSE;
@@ -265,10 +293,12 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
         kstTrk1Phi=kstTrkpPhi;
         
       }
+      //cout << "bLBSsig" << bLBSsig << endl;
+      t_sel->Fill();
       //if (eventN%2!=parity) continue;
-      if (recoB0Mass <4.9 || recoB0Mass > 5.7) continue; // needed for WT shape construction
-      if (recoCosThetaK >1.0 || recoCosThetaK < -1.0) continue;
-      if (recoCosThetaL >1.0 || recoCosThetaL < -1.0) continue;
+      //if (recoB0Mass <4.9 || recoB0Mass > 5.7) continue; // needed for WT shape construction
+      //if (recoCosThetaK >1.0 || recoCosThetaK < -1.0) continue;
+      /*if (recoCosThetaL >1.0 || recoCosThetaL < -1.0) continue;
       if (recoPhi > 3.14159 || recoPhi<-3.14159 ) continue;
       // anti-radiation cut
       if (isLMNR && passB0Psi_lmnr == 0) continue;
@@ -295,16 +325,16 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
                     ((mmkMass - y_0Cut) / (y_1Cut - y_0Cut)) > ((mmpiMass-x_0Cut)/(x_1Cut-x_0Cut));
   
       if (XCut && xBin == 4) continue;
-
+*/
       // status display
       if ( iCand > 1.0*counter*numEntries/100 ) {
         cout<<counter<<"%"<<endl;
         counter += 10;
       }
-      if (xBin == q2Bin){
+      //if (xBin == q2Bin){
 
-      t_sel->Fill();
-      }
+      //t_sel->Fill();
+      //}
       //generate random variable [0,1]
       // fill dataset
 
@@ -329,7 +359,7 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
     // Save datasets in workspaces
     //RooWorkspace *ws_ev [nBins];
     //RooWorkspace *ws_od [nBins];
-    for (int i=0; i<nBins; ++i) if (runBin[i]) {
+    //for (int i=0; i<nBins; ++i) if (runBin[i]) {
         // Skip the creation of a file when the correct-tag efficiency cannot be computed (empty numerators)
         // which usually means that either you are using a resonant MC, which does not fill signal q2 bins,
         // or using a bin too fine, or out of range
@@ -349,12 +379,12 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
         ws_od[i]->import( *data_wtRECO_od[i] );*/
 
       //TFile* fout = new TFile( ( "/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/reco"+dataString+"Dataset_"+shortString[i]+ "_" + year_str + ".root" ).c_str(), "RECREATE" );
-      TFile* fout = new TFile( ( "/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv1/reco"+dataString+"Dataset_"+shortString[i]+ "_" + year_str + frac + ".root" ).c_str(), "RECREATE" );      
-      t_sel->Write();
-      //ws_ev[i]->Write();
-      //ws_od[i]->Write();
-      fout->Close();
-    }
+    TFile* fout = new TFile( ( "/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv2/reco"+dataString+"Dataset_"+shortString[4]+ "_" + year_str + frac + ".root" ).c_str(), "RECREATE" );      
+    t_sel->Write();
+    //ws_ev[i]->Write();
+    //ws_od[i]->Write();
+    fout->Close();
+    //}
   
     // Plot 1D distributions of datasets
     /*if (plot ) {
@@ -492,12 +522,19 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
     counter=0;
     for (int iCand=frac1*numEntries; iCand<frac2*numEntries; ++iCand) {
       t_num->GetEntry(iCand);
+      t_data->GetEntry(iCand);
       bLBSsig = bLBS/bLBSE;
       bDCABSsig = bDCABS/bDCABSE;
+      //cout << "kstTrkmDCABS " << kstTrkmDCABS << endl;
+      //cout << "kstTrkmDCABSE " << kstTrkmDCABSE << endl;
+      //cout << "kstTrkmDCABSsig " << kstTrkmDCABSsig << endl;
       kstTrkmDCABSsig = kstTrkmDCABS/kstTrkmDCABSE;
+      //cout << "kstTrkmDCABSsig " << kstTrkmDCABSsig << endl;
       kstTrkpDCABSsig = kstTrkpDCABS/kstTrkpDCABSE;
-      if (kstTrkmPt>=kstTrkpPt){
 
+
+
+      if (kstTrkmPt>=kstTrkpPt){
         kstTrk1Pt=kstTrkmPt;
         kstTrk1DCABSsig=kstTrkmDCABSsig;
         kstTrk1DCABS=kstTrkmDCABS;
@@ -513,6 +550,8 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
         kstTrk2MinIP2D=kstTrkpMinIP2D;
         kstTrk2Eta=kstTrkpEta;
         kstTrk2Phi=kstTrkpPhi;
+        cout << "kstTrk1Pt " << kstTrk1Pt << endl;
+
       }
 
       else {
@@ -533,8 +572,11 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
         kstTrk1Phi=kstTrkpPhi;
         
       }
+      cout << "bLBSsig " << bLBSsig << endl;
+      t_sel->Fill();
+      //t_sel->Show(0);
       //if (eventN%2!=parity) continue;
-      if (recoB0Mass <5.0 || recoB0Mass > 5.6) continue;
+      /*if (recoB0Mass <5.0 || recoB0Mass > 5.6) continue;
       if (recoCosThetaK >1.0 || recoCosThetaK < -1.0) continue;
       if (recoCosThetaL >1.0 || recoCosThetaL < -1.0) continue;
       if (recoPhi > 3.14159 || recoPhi<-3.14159 ) continue;
@@ -553,24 +595,24 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
   	  break;
   	}
       if (xBin<0) continue;
-
+*/
       // apply cut for bin 4 
-      bool XCut= (( (PDGB0Mass - wt_mass) - y0Cut ) / (y1Cut-y0Cut)) < (((wt_kstarmass-PDGKstMass)-x0Cut) / (x1Cut-x0Cut)) && \
+      /*bool XCut= (( (PDGB0Mass - wt_mass) - y0Cut ) / (y1Cut-y0Cut)) < (((wt_kstarmass-PDGKstMass)-x0Cut) / (x1Cut-x0Cut)) && \
                     kaonPt > pionPt && \
                     (wt_kstarmass-PDGKstMass)>0 && \
                     (mmpiMass > CutX1 && mmpiMass < CutX2) && \
                     (mmkMass >  CutY1 && mmkMass  < CutY2) && \
                     ((mmkMass - y_0Cut) / (y_1Cut - y_0Cut)) > ((mmpiMass-x_0Cut)/(x_1Cut-x_0Cut));
   
-      if (XCut && xBin == 4) continue;
+      if (XCut && xBin == 4) continue;*/
       // status display
       if ( iCand > 1.0*counter*numEntries/100 ) {
         cout<<counter<<"%"<<endl;
         counter += 10;
       }
-      if (xBin == q2Bin){
-      t_sel->Fill();
-      }
+      //if (xBin == q2Bin){
+      //t_sel->Fill();
+      //}
       // fill dataset
       /*ctK.setVal(recoCosThetaK);
       ctL.setVal(recoCosThetaL);
@@ -579,13 +621,13 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
       data[xBin]->add(reco_vars);
       */
     }
-    cout<<"Before selection " << t_num->GetEntries()/5 << " Events" << endl;
+    cout<<"Before selection " << t_num->GetEntries() << " Events" << endl;
     cout<<"After selection "<< t_sel->GetEntries() << " Events" << endl; 
     cout<<"Dataset prepared"<<endl;
 
     // Save datasets in workspaces
     //RooWorkspace *ws [nBins];
-    for (int i=0; i<nBins; ++i) if (runBin[i]) {
+    //for (int i=0; i<nBins; ++i) if (runBin[i]) {
       /*if ( data[i]->numEntries()==0  ) {
         cout<<"Error: RECO data is empty in q2 bin "<<i<<endl;
   	continue;
@@ -593,11 +635,11 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int deno=0, int num=0
       ws[i] = new RooWorkspace(("ws_"+shortString[i]+"p0").c_str(),"Workspace with single-bin data datasets");
       ws[i]->import( *data[i] );
       */
-      TFile* fout = new TFile( ( "/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv1/reco_49_57_"+dataString+"Dataset_"+shortString[i]+ "_" + year_str + frac + ".root" ).c_str(), "RECREATE" );
+      TFile* fout = new TFile( ( "/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/gitv2/reco_"+dataString+"Dataset_"+shortString[4]+ "_" + year_str + frac + ".root" ).c_str(), "RECREATE" );
       //ws[i]->Write();
       t_sel->Write();
       fout->Close();
-    }
+    //}
 
   }
 
