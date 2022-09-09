@@ -156,7 +156,7 @@ weight_branch = MC_friend.Branch("MCw", leafValues,"MCw[1]/F")
 print("Wtree builded")
 print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 print("Training samples preparation------------------------------------------")
-columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bPt','bEta','bCosAlphaBS', 'bDCABS','bDCABSE', 'kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','sum_isopt_04']
+columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bEta','bCosAlphaBS', 'bDCABS','bDCABSE', 'kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','sum_isopt_04']
 sw_branch = ['nsig_sw']
 weight_branch = ['weight']
 
@@ -234,7 +234,7 @@ xg_test = xgb.DMatrix(test_X, label=test_Y, weight=sw_test)
 xg_data_only = xgb.DMatrix(data_only_X, label=data_only_Y, weight=(sw_sig_RD_a))
 xg_phsp_only = xgb.DMatrix(phsp_only_X, label=phsp_only_Y, weight=(w_MC_a))
 
-Save_Dir = './{}_XGBV4_eta5_subsample5_depth6_round150.json'.format(year)
+Save_Dir = './nobPt_{}_XGBV4_eta5_subsample5_depth4_round200.json'.format(year)
 trained_bst = xgb.Booster(model_file=Save_Dir)
 
 pr_phsp=np.array(trained_bst.predict(xg_phsp_only,validate_features=False).reshape(phsp_only_Y.shape[0], 2))
@@ -248,7 +248,7 @@ print(weight_phsp)
 
 print("MC weights------------------------------------------")
 
-MCwFile = r.TFile("./JPsiK_reweight_{}.root".format(year),"RECREATE")
+MCwFile = r.TFile("./JPsiK_reweight_nobPt_{}.root".format(year),"RECREATE")
 
 for val in weight_phsp:
     leafValues[0] = val

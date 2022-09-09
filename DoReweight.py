@@ -164,7 +164,7 @@ weight_branch = MC_friend.Branch("MCw", leafValues,"MCw[1]/F")
 print("Wtree builded")
 print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 print("Training samples preparation------------------------------------------")
-columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bPt','bEta','bCosAlphaBS', 'bDCABS','bDCABSE', 'kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','sum_isopt_04']
+columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bEta','bCosAlphaBS', 'bDCABS','bDCABSE', 'kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','sum_isopt_04']
 sw_branch = ['nsig_sw']
 weight_branch = ['weight']
 
@@ -181,19 +181,19 @@ MCweight = MCPUweight
 
 data_only_X=pd.DataFrame(data_ori,columns=columns)
 phsp_only_X=pd.DataFrame(phsp_ori,columns=columns)
-corrdata = data_only_X.corr()
+'''corrdata = data_only_X.corr()
 #plt.figure(dpi=400,figsize=(20,20))
-'''plt.figure().set_size_inches(10.5, 9.5)
+plt.figure().set_size_inches(10.5, 9.5)
 datamap = sb.heatmap(corrdata.round(2), cmap="Blues", annot=True)
 datafig = datamap.get_figure()
-datafig.savefig("./plots/datacor{}_v4.png".format(year))
+datafig.savefig("./plots/nobPtdatacor{}_v4.png".format(year))
 plt.clf()
 corrMC = phsp_only_X.corr()
 MCmap = sb.heatmap(corrMC.round(2), cmap="Blues", annot=True)
 MCfig = MCmap.get_figure()
-MCfig.savefig("./plots/MCcor{}_v4.png".format(year))
-sys.exit(0)
-'''
+MCfig.savefig("./plots/nobPtMCcor{}_v4.png".format(year))
+sys.exit(0)'''
+
 sw_sig_RD_X=pd.DataFrame(JpsiKSignal_SW)
 data_signal_sumEntries = (sw_sig_RD_X.sum())[0]
 
