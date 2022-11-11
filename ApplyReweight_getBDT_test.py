@@ -146,19 +146,19 @@ variable("kstVtxCL","kstVtxCL",[100,0,1])
 variable("weight","PUweight",[100,-1,3])
 
 rdata = r.TChain("ntuple")
-rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_aftersel_p{}.root".format(year,year,parity))
+rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_beforsel.root".format(year,year))
 MC = r.TChain("ntuple")
 MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
 rDCrate = r.TChain("ntuple")
 rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
-MC_friend = r.TTree("wTree", "weights tree")
+MC_friend = r.TTree("BDTTree", "BDT tree")
 leafValues = array("f", [0.0])
-weight_branch = MC_friend.Branch("MCw", leafValues,"MCw[1]/F")
+weight_branch = MC_friend.Branch("BDTout", leafValues,"BDTout[1]/F")
 
 print("Wtree builded")
 print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 print("Training samples preparation------------------------------------------")
-columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bCosAlphaBS', 'bDCABS','bDCABSE','kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta','kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','mu1Pt','mu2Pt','mu1Eta','mu2Eta','sum_isopt_04']
+columns = ['kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta']
 sw_branch = ['nsig_sw']
 weight_branch = ['weight']
 DCratew_branch = ['DCratew']
@@ -240,7 +240,7 @@ xg_phsp_only = xgb.DMatrix(phsp_only_X, label=phsp_only_Y, weight=(w_MC_a))
 
 Save_Dir=''
 if (year == 2016):
-    Save_Dir = '2016_XGBV5_eta5_subsample5_depth5_round200_new.json'
+    Save_Dir = './model/2016test/2016_XGBV5_eta3_subsample5_depth5_round200.json'
 elif (year==2017) : 
     Save_Dir = '2017_XGBV4_eta5_subsample5_depth6_round150.json'
 else:
@@ -248,20 +248,15 @@ else:
 
 trained_bst = xgb.Booster(model_file=Save_Dir)
 
-pr_phsp=np.array(trained_bst.predict(xg_phsp_only,validate_features=False).reshape(phsp_only_Y.shape[0], 2))
-
-#weight_test=pr_test[:,1]/pr_test[:,0]
-weight_phsp=pr_phsp[:,1]/pr_phsp[:,0]
-print("MC_weights: weight_phsp=pr_phsp")
-print(weight_phsp)
+pr_phsp= trained_bst.predict(xg_phsp_only)[:,1]
 
 # In[11]:
 
 print("MC weights------------------------------------------")
 
-MCwFile = r.TFile("./JPsiK_reweight_XGBV5_{}_new.root".format(year),"RECREATE")
+MCwFile = r.TFile("./JPsiKMC_BDTout_XGBV5_{}_test.root".format(year),"RECREATE")
 
-for val in weight_phsp:
+for val in pr_phsp:
     leafValues[0] = val
     MC_friend.Fill()
 

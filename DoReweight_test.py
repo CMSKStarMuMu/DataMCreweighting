@@ -58,6 +58,14 @@ subsample1 = float(subsample)/10.
 print ('eta ', eta1, ' subsample ', subsample1, ' max_depth ', max_depth, ' num_round ', num_round)
 
 variables = {} #dictionary containing all the variables
+mc_sigma = 0.040
+mc_mass  = 5.27783 
+JPsiMass_ = 3.096916
+nSigma_psiRej = 3.
+selData = '( pass_preselection ==1 ) && \
+            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE) &&  eventN%2=={Parity}'\
+            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)
+selMC = selData + ' && (trig==1)' + '&& truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1'
 
 class variable:
 
@@ -154,11 +162,11 @@ variable("kstVtxCL","kstVtxCL",[100,0,1])
 variable("weight","PUweight",[100,-1,3])
 
 rdata = r.TChain("ntuple")
-rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_aftersel_p{}.root".format(year,year,parity))
+rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_beforsel.root".format(year,year))
 MC = r.TChain("ntuple")
-MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_forreweighting_p{}.root".format(year,year,parity))
+MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
 rDCrate = r.TChain("ntuple")
-rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_forreweighting_p{}.root".format(year,year,parity))
+rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
 MC_friend = r.TTree("wTree", "weights tree")
 leafValues = array("f", [0.0])
 weight_branch = MC_friend.Branch("MCw", leafValues,"MCw[1]/F")
@@ -168,22 +176,24 @@ print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 print("Training samples preparation------------------------------------------")
 #columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bPt','bEta','bCosAlphaBS', 'bDCABS','bDCABSE', 'kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','sum_isopt_04']
 
-columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bCosAlphaBS', 'bDCABS','bDCABSE','kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta','kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','mu1Pt','mu2Pt','mu1Eta','mu2Eta','sum_isopt_04']
+columns = ['kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta']
 sw_branch = ['nsig_sw']
 weight_branch = ['weight']
 DCratew_branch = ['DCratew']
 
-data_ori = root_numpy.tree2array(rdata,branches=columns)
-print("Data sample readed------------------------------------------")
-phsp_ori = root_numpy.tree2array(MC,branches=columns)
-print("MC sample readed------------------------------------------")
-JpsiKSignal_SW = root_numpy.tree2array(rdata,branches=sw_branch)
+data_ori = root_numpy.tree2array(rdata,branches=columns,selection=selData)
+print("Data sample readed------------------------------------------", data_ori.shape)
+phsp_ori = root_numpy.tree2array(MC,branches=columns,selection=selMC)
+print("MC sample readed------------------------------------------" , phsp_ori.shape)
+JpsiKSignal_SW = root_numpy.tree2array(rdata,branches=sw_branch,selection=selData)
 
-print("Sweights readed------------------------------------------")
-MCPUweight = root_numpy.tree2array(MC,branches=weight_branch)
+print("dataSweights readed------------------------------------------",JpsiKSignal_SW.shape)
+MCPUweight = root_numpy.tree2array(MC,branches=weight_branch,selection=selMC)
 MCPUweight=MCPUweight.reshape(-1,1).astype(float)
-MCDCratew = root_numpy.tree2array(rDCrate,branches=DCratew_branch)
+print("MCPUweights readed------------------------------------------",MCPUweight.shape)
+MCDCratew = root_numpy.tree2array(rDCrate,branches=DCratew_branch,selection=selMC)
 MCDCratew =MCDCratew.reshape(-1,1).astype(float)
+print("MCDCratew readed------------------------------------------",MCDCratew.shape)
 MCweight = MCPUweight*MCDCratew
 
 data_only_X=pd.DataFrame(data_ori,columns=columns)
@@ -199,8 +209,8 @@ corrMC = phsp_only_X.corr()
 MCmap = sb.heatmap(corrMC.round(2), cmap="Blues", annot=True)
 MCfig = MCmap.get_figure()
 MCfig.savefig("./plots/nobPtMCcor{}_v5.png".format(year))
-sys.exit(0)
 '''
+
 
 sw_sig_RD_X=pd.DataFrame(JpsiKSignal_SW)
 data_signal_sumEntries = (sw_sig_RD_X.sum())[0]
@@ -288,7 +298,7 @@ plt.grid()
 
 plt.legend(loc='best')
 plt.tight_layout()
-plt.savefig('plots/{}/eta{}_subsample{}_depth{}_round{}/loss_score_v5.pdf'.format(year,eta,subsample,max_depth,num_round))
+plt.savefig('plots/{}test/eta{}_subsample{}_depth{}_round{}/loss_score_v5.pdf'.format(year,eta,subsample,max_depth,num_round))
 
 
 
@@ -304,7 +314,7 @@ plt.xlabel("Norm. feature importance")
 #xgb.plot_importance(bst)
 plt.tight_layout()
 #plt.show()
-plt.savefig('plots/{}/eta{}_subsample{}_depth{}_round{}/fscore_v5.pdf'.format(year,eta,subsample,max_depth,num_round))
+plt.savefig('plots/{}test/eta{}_subsample{}_depth{}_round{}/fscore_v5.pdf'.format(year,eta,subsample,max_depth,num_round))
 
 
 y_train = bst.predict(xg_train)[:,1]
@@ -464,7 +474,7 @@ ks_MC = ks_2samp(MCtrain, MCtest)
 plt.suptitle('KS p-value: data = %.3f%s - MC = %.2f%s' %(ks_data.pvalue * 100., '%', ks_MC.pvalue * 100., '%'),fontsize='large')
 
 # plt.tight_layout()
-plt.savefig('plots/{}/eta{}_subsample{}_depth{}_round{}/overtrain_v5.pdf'.format(year,eta,subsample,max_depth,num_round))
+plt.savefig('plots/{}test/eta{}_subsample{}_depth{}_round{}/overtrain_v5.pdf'.format(year,eta,subsample,max_depth,num_round))
 
 
 print ("y_train is ", y_train, " shape is ", y_train.shape)
@@ -503,10 +513,10 @@ plt.xlabel('False Positive Rate',fontsize=20)
 plt.ylabel('True Positive Rate',fontsize=20)
 plt.title('ROC curve',fontsize=25)                                                                                                  
 plt.legend(loc="lower right",fontsize='xx-large')
-plt.savefig('plots/{}/eta{}_subsample{}_depth{}_round{}/ROC_v5.pdf'.format(year,eta,subsample,max_depth,num_round))
+plt.savefig('plots/{}test/eta{}_subsample{}_depth{}_round{}/ROC_v5.pdf'.format(year,eta,subsample,max_depth,num_round))
 
 
-Save_Dir = './model/{}/{}_XGBV5_eta{}_subsample{}_depth{}_round{}.json'.format(year,year,eta,subsample,max_depth,num_round)
+Save_Dir = './model/{}test/{}_XGBV5_eta{}_subsample{}_depth{}_round{}.json'.format(year,year,eta,subsample,max_depth,num_round)
 print(('Save the trained XGBoost model in {0}').format(Save_Dir))
 bst.save_model(Save_Dir)
 

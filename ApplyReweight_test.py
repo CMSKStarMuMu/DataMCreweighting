@@ -158,7 +158,7 @@ weight_branch = MC_friend.Branch("MCw", leafValues,"MCw[1]/F")
 print("Wtree builded")
 print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 print("Training samples preparation------------------------------------------")
-columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bCosAlphaBS', 'bDCABS','bDCABSE','kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta','kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','mu1Pt','mu2Pt','mu1Eta','mu2Eta','sum_isopt_04']
+columns = ['kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta']
 sw_branch = ['nsig_sw']
 weight_branch = ['weight']
 DCratew_branch = ['DCratew']
@@ -240,7 +240,7 @@ xg_phsp_only = xgb.DMatrix(phsp_only_X, label=phsp_only_Y, weight=(w_MC_a))
 
 Save_Dir=''
 if (year == 2016):
-    Save_Dir = '2016_XGBV5_eta5_subsample5_depth5_round200_new.json'
+    Save_Dir = './model/2016test_Psi/2016_XGBV5_eta3_subsample5_depth5_round200.json'
 elif (year==2017) : 
     Save_Dir = '2017_XGBV4_eta5_subsample5_depth6_round150.json'
 else:
@@ -259,7 +259,7 @@ print(weight_phsp)
 
 print("MC weights------------------------------------------")
 
-MCwFile = r.TFile("./JPsiK_reweight_XGBV5_{}_new.root".format(year),"RECREATE")
+MCwFile = r.TFile("./JPsiK_reweight_XGBV5_{}_test_Psi.root".format(year),"RECREATE")
 
 for val in weight_phsp:
     leafValues[0] = val

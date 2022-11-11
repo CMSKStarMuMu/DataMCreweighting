@@ -20,10 +20,10 @@ selBmass = '&& (bMass*tagB0 + (1-tagB0)*bBarMass)   > {M}-3*{S}   && \
             .format(M=mc_mass,S=mc_sigma)
 
 selData = '( pass_preselection ==1 ) && \
-            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE)'\
-            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej)
+            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE) &&  eventN%2=={Parity}'\
+            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)
 
-selMC = selData + ' && (trig==1)' + '&& eventN%2==1'
+selMC = selData + ' && (trig==1)' 
 selMCtruth = '&& truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1'
 
 
@@ -131,9 +131,9 @@ rdata = TChain("ntuple")
 rMC = []
 rMC_ori = TChain("ntuple")
 rMC_rw= TChain("ntuple")
-rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_aftersel_p{}.root".format(year,year,parity))
-rMC_ori.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_XGBV5_p{}.root".format(year,year,parity))
-rMC_rw.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_XGBV5_p{}.root".format(year,year,parity))
+rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_beforsel.root".format(year,year))
+rMC_ori.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_XGBV5_p{}_new.root".format(year,year,parity))
+rMC_rw.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_XGBV5_p{}_new.root".format(year,year,parity))
 
 rMC.append(rMC_ori)
 rMC.append(rMC_rw)
@@ -144,7 +144,7 @@ label = ["", "XGBV5"]
 def plot_var(varname):
 
     hdata = r.TH1F('h{}_data'.format(varname),'h{}_data'.format(varname),variables[varname].get_nbins(), variables[varname].get_xmin(), variables[varname].get_xmax())
-    rdata.Draw('{}>>h{}_data'.format(varname,varname),'nsig_sw','goff')
+    rdata.Draw('{}>>h{}_data'.format(varname,varname),'nsig_sw*({})'.format(selData),'goff')
     hdata.Scale(1./hdata.Integral())
 
     hMC=[]
@@ -153,9 +153,9 @@ def plot_var(varname):
     for i in range(0,2):
         hMC.append(r.TH1F('h{}_MC_{}'.format(varname,label[i]),'h{}_MC_{}'.format(varname,label[i]),variables[varname].get_nbins(), variables[varname].get_xmin(), variables[varname].get_xmax()))
         if i==0:
-            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DCratew*({})'.format(selMC+selBmass),'goff')
+            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DCratew*({})'.format(selMC+selMCtruth),'goff')
         else:
-            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DCratew*MCw*({})'.format(selMC+selBmass),'goff')
+            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DCratew*MCw*({})'.format(selMC+selMCtruth),'goff')
         hMC[i].Scale(1./hMC[i].Integral())
         print ("KStest of {} _ {} is \n {}".format(varname,label[i], hMC[i].KolmogorovTest(hdata,"D")))
         print ("Chi2 test of {} _ {} is \n {}".format(varname,label[i], hMC[i].Chi2Test(hdata,"WWP")))
@@ -254,9 +254,15 @@ def plot_var(varname):
     line_3In1.SetLineStyle(3)
     line_3In1.Draw()
 
-    c.SaveAs('Complots/{}/{}.png'.format(year,varname))
+    c.SaveAs('Complots/{}new/{}.png'.format(year,varname))
 
 for v in columns_draw: plot_var(v)
+
+#def plot_weight():
+#    rMC_rw.Draw("MCw>>hMCw","{}".format(selMC+selBmass+selMCtruth))
+
+#plot_weight()
+    
 
 
 
