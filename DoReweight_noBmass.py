@@ -63,9 +63,11 @@ mc_mass  = 5.27783
 JPsiMass_ = 3.096916
 nSigma_psiRej = 3.
 selData = '( pass_preselection ==1 ) && \
-            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE) &&  eventN%2=={Parity}'\
-            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)
-selMC = selData + ' && (trig==1)' + '&& truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1'
+            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE)'\
+            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej)
+selMC = selData + '&& (eventN%2==0) && (trig==1)' + '&& (truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1)'
+selDatax = '&& (eventN_x%2=={Parity})'.format(Parity=parity)
+selPos = '&& (nsig_sw_pos !=0)'
 
 class variable:
 
@@ -162,11 +164,11 @@ variable("kstVtxCL","kstVtxCL",[100,0,1])
 variable("weight","PUweight",[100,-1,3])
 
 rdata = r.TChain("ntuple")
-rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_beforsel.root".format(year,year))
+rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_beforsel_posWei_div6.root".format(year,year))
 MC = r.TChain("ntuple")
-MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
-rDCrate = r.TChain("ntuple")
-rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
+MC.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/preselection/scale_median_and_add_vars/MC_JPSI_{}_preBDT_scale_add_vars_median_no_mass_window.root".format(year))
+'''rDCrate = r.TChain("ntuple")
+rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))'''
 MC_friend = r.TTree("wTree", "weights tree")
 leafValues = array("f", [0.0])
 weight_branch = MC_friend.Branch("MCw", leafValues,"MCw[1]/F")
@@ -177,24 +179,25 @@ print("Training samples preparation------------------------------------------")
 #columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bPt','bEta','bCosAlphaBS', 'bDCABS','bDCABSE', 'kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','sum_isopt_04']
 
 columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bCosAlphaBS', 'bDCABS','bDCABSE','kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta','kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','mu1Pt','mu2Pt','mu1Eta','mu2Eta','sum_isopt_04']
-sw_branch = ['nsig_sw']
+sw_branch = ['nsig_sw_pos']
 weight_branch = ['weight']
-DCratew_branch = ['DCratew']
+#DCratew_branch = ['DCratew']
 
-data_ori = root_numpy.tree2array(rdata,branches=columns,selection=selData)
+data_ori = root_numpy.tree2array(rdata,branches=columns,selection=selData+selDatax+selPos)
 print("Data sample readed------------------------------------------", data_ori.shape)
 phsp_ori = root_numpy.tree2array(MC,branches=columns,selection=selMC)
 print("MC sample readed------------------------------------------" , phsp_ori.shape)
-JpsiKSignal_SW = root_numpy.tree2array(rdata,branches=sw_branch,selection=selData)
+JpsiKSignal_SW = root_numpy.tree2array(rdata,branches=sw_branch,selection=selData+selDatax+selPos)
 
 print("dataSweights readed------------------------------------------",JpsiKSignal_SW.shape)
 MCPUweight = root_numpy.tree2array(MC,branches=weight_branch,selection=selMC)
 MCPUweight=MCPUweight.reshape(-1,1).astype(float)
 print("MCPUweights readed------------------------------------------",MCPUweight.shape)
-MCDCratew = root_numpy.tree2array(rDCrate,branches=DCratew_branch,selection=selMC)
-MCDCratew =MCDCratew.reshape(-1,1).astype(float)
-print("MCDCratew readed------------------------------------------",MCDCratew.shape)
-MCweight = MCPUweight*MCDCratew
+#MCDCratew = root_numpy.tree2array(rDCrate,branches=DCratew_branch,selection=selMC)
+#MCDCratew =MCDCratew.reshape(-1,1).astype(float)
+#print("MCDCratew readed------------------------------------------",MCDCratew.shape)
+#MCweight = MCPUweight*MCDCratew
+MCweight = MCPUweight
 
 data_only_X=pd.DataFrame(data_ori,columns=columns)
 phsp_only_X=pd.DataFrame(phsp_ori,columns=columns)

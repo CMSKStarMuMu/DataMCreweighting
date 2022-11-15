@@ -46,6 +46,7 @@ time_start=timer.time()
 q2Bin = int(sys.argv[1])
 parity = int(sys.argv[2])
 year = int(sys.argv[3])
+data1 = int(sys.argv[4])
 # In[2]:
 
 
@@ -146,11 +147,11 @@ variable("kstVtxCL","kstVtxCL",[100,0,1])
 variable("weight","PUweight",[100,-1,3])
 
 rdata = r.TChain("ntuple")
-rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_beforsel.root".format(year,year))
+rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_beforsel_posWei_div6.root".format(year,year))
 MC = r.TChain("ntuple")
-MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
-rDCrate = r.TChain("ntuple")
-rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
+MC.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/preselection/scale_median_and_add_vars/MC_JPSI_{}_preBDT_scale_add_vars_median_no_mass_window.root".format(year))
+#rDCrate = r.TChain("ntuple")
+#rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
 MC_friend = r.TTree("BDTTree", "BDT tree")
 leafValues = array("f", [0.0])
 weight_branch = MC_friend.Branch("BDTout", leafValues,"BDTout[1]/F")
@@ -159,9 +160,9 @@ print("Wtree builded")
 print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 print("Training samples preparation------------------------------------------")
 columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bCosAlphaBS', 'bDCABS','bDCABSE','kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta','kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','mu1Pt','mu2Pt','mu1Eta','mu2Eta','sum_isopt_04']
-sw_branch = ['nsig_sw']
+sw_branch = ['nsig_sw_pos']
 weight_branch = ['weight']
-DCratew_branch = ['DCratew']
+#DCratew_branch = ['DCratew']
 data_ori = root_numpy.tree2array(rdata,branches=columns)
 print("Data sample readed------------------------------------------")
 phsp_ori = root_numpy.tree2array(MC,branches=columns)
@@ -171,10 +172,10 @@ JpsiKSignal_SW = root_numpy.tree2array(rdata,branches=sw_branch)
 print("Sweights readed------------------------------------------")
 MCPUweight = root_numpy.tree2array(MC,branches=weight_branch)
 MCPUweight=MCPUweight.reshape(-1,1).astype(float)
-MCDCratew = root_numpy.tree2array(rDCrate,branches=DCratew_branch)
-MCDCratew =MCDCratew.reshape(-1,1).astype(float)
-MCweight = MCPUweight*MCDCratew
-
+#MCDCratew = root_numpy.tree2array(rDCrate,branches=DCratew_branch)
+#MCDCratew =MCDCratew.reshape(-1,1).astype(float)
+#MCweight = MCPUweight*MCDCratew
+MCweight = MCPUweight
 data_only_X=pd.DataFrame(data_ori,columns=columns)
 phsp_only_X=pd.DataFrame(phsp_ori,columns=columns)
 corrdata = data_only_X.corr()
@@ -240,7 +241,7 @@ xg_phsp_only = xgb.DMatrix(phsp_only_X, label=phsp_only_Y, weight=(w_MC_a))
 
 Save_Dir=''
 if (year == 2016):
-    Save_Dir = '2016_XGBV5_eta5_subsample5_depth5_round200_new.json'
+    Save_Dir = './model/2016/2016_XGBV5_eta3_subsample3_depth4_round150.json'
 elif (year==2017) : 
     Save_Dir = '2017_XGBV4_eta5_subsample5_depth6_round150.json'
 else:
@@ -248,22 +249,37 @@ else:
 
 trained_bst = xgb.Booster(model_file=Save_Dir)
 
-pr_phsp= trained_bst.predict(xg_data_only)[:,1]
 
+pr_data= trained_bst.predict(xg_data_only)[:,1]
+pr_phsp= trained_bst.predict(xg_phsp_only)[:,1]
 # In[11]:
 
 print("MC weights------------------------------------------")
 
-MCwFile = r.TFile("./JPsiKdata_BDTout_XGBV5_{}_new.root".format(year),"RECREATE")
+if data1 == 0:
+    #MC 
+    MCwFile = r.TFile("./JPsiKMC_BDTout_XGBV5_{}_new.root".format(year),"RECREATE")
 
-for val in pr_phsp:
-    leafValues[0] = val
-    MC_friend.Fill()
+    for val in pr_phsp:
+        leafValues[0] = val
+        MC_friend.Fill()
 
-MCwFile.cd()
-MC_friend.Write()
+    MCwFile.cd()
+    MC_friend.Write()
 
-MC.AddFriend(MC_friend)
+    MC.AddFriend(MC_friend)
+else:
+    #data
+    MCwFile = r.TFile("./JPsiKdata_BDTout_XGBV5_{}_new.root".format(year),"RECREATE")
+
+    for val in pr_data:
+        leafValues[0] = val
+        MC_friend.Fill()
+
+    MCwFile.cd()
+    MC_friend.Write()
+
+    MC.AddFriend(MC_friend)
 
 time_end=timer.time()
 print('totally cost',time_end-time_start)

@@ -14,17 +14,12 @@ mc_sigma = 0.040
 mc_mass  = 5.27783 
 JPsiMass_ = 3.096916
 nSigma_psiRej = 3.
-
-selBmass = '&& (bMass*tagB0 + (1-tagB0)*bBarMass)   > {M}-3*{S}   && \
-            (bMass*tagB0 + (1-tagB0)*bBarMass)   < {M}+3*{S} '\
-            .format(M=mc_mass,S=mc_sigma)
-
-selData = '( pass_preselection ==1 ) && \
-            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE) &&  eventN%2=={Parity}'\
-            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)
-
-selMC = selData + ' && (trig==1)' 
-selMCtruth = '&& truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1'
+selData1 = '( pass_preselection ==1 ) && \
+            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE)'\
+            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej)
+selMC = selData1 + ' && (trig==1) && (eventN%2==1)'+'&& truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1'
+selPos = '&& (nsig_sw_pos !=0)'
+selData = selData1+selPos
 
 
 variables = {} #dictionary containing all the variables
@@ -106,6 +101,7 @@ variable("cos_theta_k", "cos_theta_k", [100,-1,1])
 variable("phi_kst_mumu", "phi_kst_mumu", [100,-3.14159,3.14159])
 variable("kstVtxCL","kstVtxCL",[100,0,1])
 
+variable("BDTout","BDTout",[100,0,1])
 
 
 columns_draw = [
@@ -123,7 +119,7 @@ columns_draw = [
 
 columns_error = ["bLBSE","bDCABSE","kstTrk1DCABSE","kstTrk2DCABSE"]
 
-columns = ['bCosAlphaBS']
+columns = ['BDTout']
 
 color = [r.kRed,r.kBlue]
 
@@ -131,21 +127,33 @@ rdata = TChain("ntuple")
 rMC = []
 rMC_ori = TChain("ntuple")
 rMC_rw= TChain("ntuple")
-rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_beforsel.root".format(year,year))
-rMC_ori.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_XGBV5_p{}_new.root".format(year,year,parity))
-rMC_rw.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_XGBV5_p{}_new.root".format(year,year,parity))
-
+rMC_rw1= TChain("ntuple")
+rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_beforsel_posWei_div6.root".format(year,year))
+dataBDT = TChain("BDTTree")
+dataBDT.Add("./JPsiKdata_BDTout_XGBV5_2016_new.root")
+rdata.AddFriend(dataBDT)
+rMC_ori = r.TChain("ntuple")
+rMC_ori.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/preselection/scale_median_and_add_vars/MC_JPSI_{}_preBDT_scale_add_vars_median_no_mass_window.root".format(year))
+rMCw = TChain("wTree")
+rMCw.Add("./JPsiK_reweight_XGBV5_2016_new.root")
+MCBDT = TChain("BDTTree")
+MCBDT.Add("./JPsiKMC_BDTout_XGBV5_2016_new.root")
+rMC_ori.AddFriend(rMCw)
+rMC_ori.AddFriend(MCBDT)
+rMC_rw.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/preselection/scale_median_and_add_vars/MC_JPSI_{}_preBDT_scale_add_vars_median_no_mass_window.root".format(year))
+rMC_rw.AddFriend(rMCw)
+rMC_rw.AddFriend(MCBDT)
 rMC.append(rMC_ori)
+
 rMC.append(rMC_rw)
 
-label = ["", "XGBV5"]
 
+label = ["","XGBV5"]
+label1 = ["", "oldsw"]
 
 def plot_var(varname):
 
-    hdata = r.TH1F('h{}_data'.format(varname),'h{}_data'.format(varname),variables[varname].get_nbins(), variables[varname].get_xmin(), variables[varname].get_xmax())
-    rdata.Draw('{}>>h{}_data'.format(varname,varname),'nsig_sw*({})'.format(selData),'goff')
-    hdata.Scale(1./hdata.Integral())
+
 
     hMC=[]
     hratio=[]
@@ -153,14 +161,23 @@ def plot_var(varname):
     for i in range(0,2):
         hMC.append(r.TH1F('h{}_MC_{}'.format(varname,label[i]),'h{}_MC_{}'.format(varname,label[i]),variables[varname].get_nbins(), variables[varname].get_xmin(), variables[varname].get_xmax()))
         if i==0:
-            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DCratew*({})'.format(selMC+selMCtruth),'goff')
-        else:
-            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DCratew*MCw*({})'.format(selMC+selMCtruth),'goff')
-        hMC[i].Scale(1./hMC[i].Integral())
-        print ("KStest of {} _ {} is \n {}".format(varname,label[i], hMC[i].KolmogorovTest(hdata,"D")))
-        print ("Chi2 test of {} _ {} is \n {}".format(varname,label[i], hMC[i].Chi2Test(hdata,"WWP")))
+            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*({})'.format(selMC),'goff') 
+        elif i==1:
+            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*MCw*({})'.format(selMC),'goff')
+        
+    hdata = r.TH1F('h{}_data'.format(varname),'h{}_data'.format(varname),variables[varname].get_nbins(), variables[varname].get_xmin(), variables[varname].get_xmax())
+    rdata.Draw('{}>>h{}_data'.format(varname,varname),'nsig_sw_pos*({})'.format(selData),'goff')
+    hdata.Scale(hMC[0].Integral()/hdata.Integral())
+    
+    hdata1 = r.TH1F('h{}_data1'.format(varname),'h{}_data1'.format(varname),variables[varname].get_nbins(), variables[varname].get_xmin(), variables[varname].get_xmax())
+    rdata.Draw('{}>>h{}_data1'.format(varname,varname),'nsig_sw*({})'.format(selData1),'goff')   
+    hdata1.Scale(hMC[0].Integral()/hdata1.Integral())   
+    
+     
+    for i in range(0,2):
         hratio.append(hMC[i].Clone('h{}_ratio_{}'.format(varname,label[i])))
         hratio[i].Divide(hdata)
+        
 
     c = r.TCanvas("canvas","canvas",1600,1200)
     #pad1
@@ -175,6 +192,12 @@ def plot_var(varname):
     hdata.SetMarkerStyle(3)
     hdata.SetMarkerColor(r.kBlack)
     hs.Add(hdata, "P")
+    
+    hdata1.SetMarkerStyle(3)
+    hdata1.SetMarkerColor(r.kYellow+2)
+    hs.Add(hdata1, "P")
+    
+    
     for i in range(0,2):
         hMC[i].SetLineColor(color[i])
         hMC[i].SetLineWidth(3)
@@ -209,6 +232,7 @@ def plot_var(varname):
     else:
         leg = r.TLegend(0.7,0.7,0.90,0.95)
         leg.AddEntry(hdata, "data", "ep")
+        leg.AddEntry(hdata1, "data_orisw", "ep")
         for i in range(0,2):
             leg.AddEntry(hMC[i], "MC {}".format(label[i]), "lf")
         leg.Draw()
@@ -254,9 +278,9 @@ def plot_var(varname):
     line_3In1.SetLineStyle(3)
     line_3In1.Draw()
 
-    c.SaveAs('Complots/{}new/{}.png'.format(year,varname))
+    c.SaveAs('Complots/{}/{}_new.png'.format(year,varname))
 
-for v in columns_draw: plot_var(v)
+for v in columns: plot_var(v)
 
 #def plot_weight():
 #    rMC_rw.Draw("MCw>>hMCw","{}".format(selMC+selBmass+selMCtruth))

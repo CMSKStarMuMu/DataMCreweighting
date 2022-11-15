@@ -148,9 +148,9 @@ variable("weight","PUweight",[100,-1,3])
 rdata = r.TChain("ntuple")
 rdata.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_data_aftersel_p{}.root".format(year,year,parity))
 MC = r.TChain("ntuple")
-MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
-rDCrate = r.TChain("ntuple")
-rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
+MC.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/preselection/scale_median_and_add_vars/MC_JPSI_{}_preBDT_scale_add_vars_median_no_mass_window.root".format(year))
+#rDCrate = r.TChain("ntuple")
+#rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
 MC_friend = r.TTree("wTree", "weights tree")
 leafValues = array("f", [0.0])
 weight_branch = MC_friend.Branch("MCw", leafValues,"MCw[1]/F")
@@ -171,10 +171,10 @@ JpsiKSignal_SW = root_numpy.tree2array(rdata,branches=sw_branch)
 print("Sweights readed------------------------------------------")
 MCPUweight = root_numpy.tree2array(MC,branches=weight_branch)
 MCPUweight=MCPUweight.reshape(-1,1).astype(float)
-MCDCratew = root_numpy.tree2array(rDCrate,branches=DCratew_branch)
-MCDCratew =MCDCratew.reshape(-1,1).astype(float)
-MCweight = MCPUweight*MCDCratew
-
+#MCDCratew = root_numpy.tree2array(rDCrate,branches=DCratew_branch)
+#MCDCratew =MCDCratew.reshape(-1,1).astype(float)
+#MCweight = MCPUweight*MCDCratew
+MCweight = MCPUweight
 data_only_X=pd.DataFrame(data_ori,columns=columns)
 phsp_only_X=pd.DataFrame(phsp_ori,columns=columns)
 corrdata = data_only_X.corr()
@@ -240,7 +240,7 @@ xg_phsp_only = xgb.DMatrix(phsp_only_X, label=phsp_only_Y, weight=(w_MC_a))
 
 Save_Dir=''
 if (year == 2016):
-    Save_Dir = '2016_XGBV5_eta5_subsample5_depth5_round200_new.json'
+    Save_Dir = './model/2016/2016_XGBV5_eta3_subsample3_depth4_round150.json'
 elif (year==2017) : 
     Save_Dir = '2017_XGBV4_eta5_subsample5_depth6_round150.json'
 else:
