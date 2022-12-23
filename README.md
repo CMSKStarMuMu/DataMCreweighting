@@ -1,22 +1,10 @@
 # DataMCreweighting
 Reweighting code of data/MC difference
 
-## Create Dataset
+## Merge DRweight with ntuple
 
 ```sh
-root -l 'createDataset.cc(year,q2Bin,data,deno,num)'
-```
-Then we can generate part of data/MC ntuple after all selections (due to limitations of ntuple size)
-
-Then add sWeights to data ntuple, merge all files and divide into two parities
-
-```sh
-python AddSweight.py
-```
-For MC we just need to merge all root files
-
-```sh
-python MCmerge.py
+python AddDRweight.py 2016
 ```
 
 ## Generate model
@@ -24,15 +12,32 @@ python MCmerge.py
 We just use even parity Jpsi channel to generate reweighting model
 
 ```sh
-python DoReweight_readindat_fulldatatraining.py q2Bin parity year
+python DoReweight_2class.py 4 0 2016 10 10 7 100
+python DoReweight_3class.py 4 0 2016 10 10 7 1000
 ```
+With early stop, best iteration number for 2 class is 40, for 3 class is 102 (will be different due to different train/test sample split)
 
 ## Apply model
 
-Then we can apply model to each q2Bin (here use odd parity events) 
+Then we can apply model
 
 ```sh
-python Application_DoReweight_readindat_fulldatatraining.py
+python ApplyReweight_2class.py 4 1 2016
+python ApplyReweight_3class.py 4 1 2016
 ```
-remember that we can only compare data and MC distributions in Jpsi channel and Psi(2S) channel
+
+And we can also get MCprob for data and MC samples
+```sh
+python ApplyReweight_getBDT_2class.py 4 1 2016 0
+python ApplyReweight_getBDT_2class.py 4 1 2016 1
+```
+
+## Draw comparison plots
+```sh
+plotdiffoptionbin4_2class.py 4 1 2016
+plotdiffoptionbin4_3class.py 4 1 2016
+```
+
+
+
 
