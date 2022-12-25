@@ -15,15 +15,9 @@ mc_mass  = 5.27783
 JPsiMass_ = 3.096916
 nSigma_psiRej = 3.
 
-selData = '( pass_preselection ==1 ) && \
-            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE) &&  eventN%2=={Parity}'\
-            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)
-
-selData1 = '( pass_preselection ==1 ) && \
-            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE) &&  eventN_x%2=={Parity}'\
-            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)
-
-selMC = selData1 + ' && (trig==1)' + '&& truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1'
+selJpsi = "(mumuMass*mumuMass>8.68 && mumuMass*mumuMass < 10.09) && pass_preselection==1 && (tagged_mass > 5.0 && tagged_mass < 5.6) &&  xcut == 0 && passB0Psi_jpsi == 1"
+selData  = selJpsi + "&& eventN%2==1"
+selMC = selJpsi + "&& eventN_x%2==1" + " && (trig==1) && truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1"
 
 
 variables = {} #dictionary containing all the variables
@@ -126,21 +120,24 @@ rdata = TChain("ntuple")
 rMC = []
 rMC_ori = TChain("ntuple")
 #rMC_rw= TChain("ntuple")
-rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
+if (year !=2017):
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
+else:
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_noNan_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
 BDTdata = TChain("BDTTree")
-BDTdata.Add("./files/2016/JPsiKdata_BDTout_XGBV5_2016_2class.root")
+BDTdata.Add("./files/{}/JPsiKdata_BDTout_XGBV5_{}_2class.root".format(year,year))
 rdata.AddFriend(BDTdata)
 
 
 rMC_ori.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
 #rMC_rw.Add("/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/MC-Jpsi-presel-scaled/{}.root".format(year))
 MCBDT = TChain("wTree")
-MCBDT.Add("./files/2016/JPsiK_reweight_XGBV5_2016_2class.root")
+MCBDT.Add("./files/{}/JPsiK_reweight_XGBV5_{}_2class.root".format(year,year))
 rMC_ori.AddFriend(MCBDT)
 #rMC_rw.AddFriend(MCBDT)
 
 BDTMC = TChain("BDTTree")
-BDTMC.Add("./files/2016/JPsiKMC_BDTout_XGBV5_2016_2class.root")
+BDTMC.Add("./files/{}/JPsiKMC_BDTout_XGBV5_{}_2class.root".format(year,year))
 rMC_ori.AddFriend(BDTMC)
 
 rMC.append(rMC_ori)

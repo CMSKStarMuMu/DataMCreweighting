@@ -147,9 +147,13 @@ variable("kstVtxCL","kstVtxCL",[100,0,1])
 variable("weight","PUweight",[100,-1,3])
 
 rdata = r.TChain("ntuple")
-rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
 MC = r.TChain("ntuple")
-MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
+if (year !=2017):
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
+    MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
+else :
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_noNan_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
+    MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
 #rDCrate = r.TChain("ntuple")
 #rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
 MC_friend = r.TTree("BDTTree", "BDT tree")
@@ -162,18 +166,21 @@ print("Training samples preparation------------------------------------------")
 columns = ['kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta','mu1Pt','mu2Pt','mu1Eta','mu2Eta']
 sw_branch = ['nsig_sw']
 weight_branch = ['weight']
+DCratew_branch = ['DRweight']
 data_ori = root_numpy.tree2array(rdata,branches=columns)
-print("Data sample readed------------------------------------------")
+print("Data sample readed------------------------------------------", data_ori.shape)
 phsp_ori = root_numpy.tree2array(MC,branches=columns)
-print("MC sample readed------------------------------------------")
+print("MC sample readed------------------------------------------" , phsp_ori.shape)
 JpsiKSignal_SW = root_numpy.tree2array(rdata,branches=sw_branch)
 
-print("Sweights readed------------------------------------------")
+print("dataSweights readed------------------------------------------",JpsiKSignal_SW.shape)
 MCPUweight = root_numpy.tree2array(MC,branches=weight_branch)
 MCPUweight=MCPUweight.reshape(-1,1).astype(float)
-#MCDCratew = root_numpy.tree2array(rDCrate,branches=DCratew_branch)
-#MCDCratew =MCDCratew.reshape(-1,1).astype(float)
-MCweight = MCPUweight
+print("MCPUweights readed------------------------------------------",MCPUweight.shape)
+MCDCratew = root_numpy.tree2array(MC,branches=DCratew_branch)
+MCDCratew =MCDCratew.reshape(-1,1).astype(float)
+print("MCDCratew readed------------------------------------------",MCDCratew.shape)
+MCweight = MCPUweight*MCDCratew
 
 data_only_X=pd.DataFrame(data_ori,columns=columns)
 phsp_only_X=pd.DataFrame(phsp_ori,columns=columns)
@@ -240,11 +247,11 @@ xg_phsp_only = xgb.DMatrix(phsp_only_X, label=phsp_only_Y, weight=(w_MC_a))
 
 Save_Dir=''
 if (year == 2016):
-    Save_Dir = './model/2016/2class/2016_XGBV5_eta10_subsample10_depth7_round100.json'
+    Save_Dir ='./model/2016/2class/2016_XGBV5_eta10_subsample10_depth7_round1000.json'
 elif (year==2017) : 
-    Save_Dir = '2017_XGBV4_eta5_subsample5_depth6_round150.json'
+    Save_Dir ='./model/2017/2class/2017_XGBV5_eta10_subsample10_depth7_round1000.json'
 else:
-    Save_Dir = '2018_XGBV5_eta5_subsample5_depth4_round250.json'
+    Save_Dir ='./model/2018/2class/2018_XGBV5_eta10_subsample10_depth7_round1000.json'
 
 trained_bst = xgb.Booster(model_file=Save_Dir)
 
@@ -256,7 +263,7 @@ pr_data= trained_bst.predict(xg_data_only)[:,0]
 print("MC weights------------------------------------------")
 
 if data1==1:
-    MCwFile = r.TFile("./files/2016/JPsiKdata_BDTout_XGBV5_{}_2class.root".format(year),"RECREATE")
+    MCwFile = r.TFile("./files/{}/JPsiKdata_BDTout_XGBV5_{}_2class.root".format(year,year),"RECREATE")
 
     for val in pr_data:
         leafValues[0] = val
@@ -268,7 +275,7 @@ if data1==1:
     MC.AddFriend(MC_friend)
     
 else:
-    MCwFile = r.TFile("./files/2016/JPsiKMC_BDTout_XGBV5_{}_2class.root".format(year),"RECREATE")
+    MCwFile = r.TFile("./files/{}/JPsiKMC_BDTout_XGBV5_{}_2class.root".format(year,year),"RECREATE")
 
     for val in pr_phsp:
         leafValues[0] = val

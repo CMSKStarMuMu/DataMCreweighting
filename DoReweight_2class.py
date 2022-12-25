@@ -62,15 +62,19 @@ mc_sigma = 0.040
 mc_mass  = 5.27783 
 JPsiMass_ = 3.096916
 nSigma_psiRej = 3.
-selData = '( pass_preselection ==1 ) && \
+
+selJpsi = "(mumuMass*mumuMass>8.68 && mumuMass*mumuMass < 10.09) && pass_preselection==1 && (tagged_mass > 5.0 && tagged_mass < 5.6) &&  xcut == 0 && passB0Psi_jpsi == 1"
+selData  = selJpsi + "&& eventN%2==0"
+selMC = selJpsi + "&& eventN_x%2==0" + " && (trig==1) && truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1"
+'''selData = '( pass_preselection ==1 ) && \
             (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE) &&  eventN%2=={Parity}'\
             .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)
 
 selData1 = '( pass_preselection ==1 ) && \
             (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE) &&  eventN_x%2=={Parity}'\
-            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)
+            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)'''
 
-selMC = selData1 + ' && (trig==1)' + '&& truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1'
+#selMC = selData1 + ' && (trig==1)' + '&& truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1'
 #selNan = ' && bCosAlphaBSE==bCosAlphaBSE && bLBSE==bLBSE && bDCABSE==bDCABSE'
 class variable:
 
@@ -167,9 +171,14 @@ variable("kstVtxCL","kstVtxCL",[100,0,1])
 variable("weight","PUweight",[100,-1,3])
 
 rdata = r.TChain("ntuple")
-rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
 MC = r.TChain("ntuple")
-MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
+if (year !=2017):
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
+    MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
+else :
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_noNan_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
+    MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
+
 #rDCrate = r.TChain("ntuple")
 #rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
 MC_friend = r.TTree("wTree", "weights tree")
@@ -198,7 +207,7 @@ MCPUweight=MCPUweight.reshape(-1,1).astype(float)
 print("MCPUweights readed------------------------------------------",MCPUweight.shape)
 MCDCratew = root_numpy.tree2array(MC,branches=DCratew_branch,selection=selMC)
 MCDCratew =MCDCratew.reshape(-1,1).astype(float)
-#print("MCDCratew readed------------------------------------------",MCDCratew.shape)
+print("MCDCratew readed------------------------------------------",MCDCratew.shape)
 MCweight = MCPUweight*MCDCratew
 
 data_only_X=pd.DataFrame(data_ori,columns=columns)
