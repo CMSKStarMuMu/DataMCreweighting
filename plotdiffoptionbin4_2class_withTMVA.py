@@ -15,15 +15,9 @@ mc_mass  = 5.27783
 JPsiMass_ = 3.096916
 nSigma_psiRej = 3.
 
-selData = '( pass_preselection ==1 ) && \
-            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE) &&  eventN%2=={Parity}'\
-            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)
-
-selData1 = '( pass_preselection ==1 ) && \
-            (abs(mumuMass - {JPSIM}) < {CUT}*mumuMassE) &&  eventN_x%2=={Parity}'\
-            .format( JPSIM=JPsiMass_, CUT=nSigma_psiRej, Parity=parity)
-
-selMC = selData1 + ' && (trig==1)' + '&& truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1'
+selJpsi = "(mumuMass*mumuMass>8.68 && mumuMass*mumuMass < 10.09) && pass_preselection==1 && (tagged_mass > 5.0 && tagged_mass < 5.6) &&  xcut == 0 && passB0Psi_jpsi == 1"
+selData  = selJpsi + "&& eventN%2==1"
+selMC = selJpsi + "&& eventN_x%2==1" + " && (trig==1) && truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1"
 
 
 variables = {} #dictionary containing all the variables
@@ -65,8 +59,8 @@ variable("bCosAlphaBS","bCosAlphaBS",[100, 0.9996, 1.0])
 variable("bDCABS","bDCABS",[100, -0.015, 0.015])
 variable("bDCABSE","bDCABSE_scaled",[100, 0, 0.005]) #significance
 
-variable("kstTrk1DCABS","kstTrk1DCABS",[100, -1, 1])
-variable("kstTrk2DCABS","kstTrk2DCABS",[100, -1, 1])
+variable("kstTrk1DCABS","kstTrk1DCABS",[100, -0.4, 0.4])
+variable("kstTrk2DCABS","kstTrk2DCABS",[100, -0.4, 0.4])
 variable("kstTrk1DCABSE","kstTrk1DCABSE",[100, 0, 0.025])
 variable("kstTrk2DCABSE","kstTrk2DCABSE",[100, 0, 0.035])
 
@@ -74,7 +68,7 @@ variable("kstTrk2DCABSE","kstTrk2DCABSE",[100, 0, 0.035])
 variable("kstTrk2MinIP2D","kstTrk2MinIP2D ",[100, 0, 1])
 variable("kstTrk1MinIP2D","kstTrk1MinIP2D ",[100, 0, 1])
 
-variable("sum_isopt_04","sum_isopt_04 ",[100, 0, 40])
+variable("sum_isopt_04","sum_isopt_04 ",[100, 0, 10])
 
 variable("mu1Pt", "mu1PT", [100,0,40])
 variable("mu2Pt", "mu2PT", [100,0,40])
@@ -107,46 +101,54 @@ variable("kstVtxCL","kstVtxCL",[100,0,1])
 variable("BDTout","BDTout",[100,0,1])
 
 
-columns_draw = ["BDTout",
+'''columns_draw = ["BDTout",
                 "bPt","bEta",
                 "mu1Pt","mu1Eta",
                 "mu2Pt","mu2Eta",
                 "kstTrk2Pt","kstTrk2Eta",
                 "kstTrk1Pt","kstTrk1Eta",
-                "cos_theta_l","cos_theta_k","phi_kst_mumu",
-                ]
+                "cos_theta_l","cos_theta_k","phi_kst_mumu","sum_isopt_04","kstTrk1DCABS","kstTrk2DCABS","bCosAlphaBS"
+                ]    '''      
+columns_draw = ["kstTrk2DCABS"]
 
 columns_error = ["bLBSE","bDCABSE","kstTrk1DCABSE","kstTrk2DCABSE"]
 
 columns = ['BDTout']
 
-color = [r.kRed,r.kBlue]
+color = [r.kRed,r.kBlue,r.kPink+8]
 
 rdata = TChain("ntuple")
 rMC = []
 rMC_ori = TChain("ntuple")
 #rMC_rw= TChain("ntuple")
-rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
+if (year !=2017):
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
+else:
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_noNan_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
 BDTdata = TChain("BDTTree")
-BDTdata.Add("./files/2016/JPsiKdata_BDTout_XGBV7_2016_3class.root")
+BDTdata.Add("./files/{}/JPsiKdata_BDTout_XGBV5_{}_2class.root".format(year,year))
 rdata.AddFriend(BDTdata)
 
 
 rMC_ori.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
 #rMC_rw.Add("/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/MC-Jpsi-presel-scaled/{}.root".format(year))
 MCBDT = TChain("wTree")
-MCBDT.Add("./files/2016/JPsiK_reweight_XGBV7_2016_3class_reset0.root")
-rMC_ori.AddFriend(MCBDT)
+MCBDT.Add("./files/{}/JPsiK_reweight_XGBV5_{}_2class.root".format(year,year))
+rMC_ori.AddFriend(MCBDT,"tXGB")
+
+MCTMVA = TChain("wTree")
+MCTMVA.Add("/afs/cern.ch/work/d/dini/public/tmva2/{}MC_JPSI-MCw.root".format(year))
+rMC_ori.AddFriend(MCTMVA,"tTMVA")
 #rMC_rw.AddFriend(MCBDT)
 
 BDTMC = TChain("BDTTree")
-BDTMC.Add("./files/2016/JPsiKMC_BDTout_XGBV7_2016_3class.root")
+BDTMC.Add("./files/{}/JPsiKMC_BDTout_XGBV5_{}_2class.root".format(year,year))
 rMC_ori.AddFriend(BDTMC)
 
 rMC.append(rMC_ori)
 rMC.append(rMC_ori)
-
-label = ["", "XGB_3Class"]
+rMC.append(rMC_ori)
+label = ["", "XGBV7","TMVA"]
 
 
 def plot_var(varname):
@@ -158,12 +160,14 @@ def plot_var(varname):
     hMC=[]
     hratio=[]
 
-    for i in range(0,2):
+    for i in range(0,3):
         hMC.append(r.TH1F('h{}_MC_{}'.format(varname,label[i]),'h{}_MC_{}'.format(varname,label[i]),variables[varname].get_nbins(), variables[varname].get_xmin(), variables[varname].get_xmax()))
         if i==0:
             rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DRweight*({})'.format(selMC),'goff')
-        else:
-            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DRweight*MCw*({})'.format(selMC),'goff')
+        elif i==1:
+            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DRweight*tXGB.MCw*({})'.format(selMC),'goff')
+        else :
+            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DRweight*tTMVA.MCw*({})'.format(selMC),'goff')
         hMC[i].Scale(1./hMC[i].Integral())
         print ("KStest of {} _ {} is \n {}".format(varname,label[i], hMC[i].KolmogorovTest(hdata,"D")))
         print ("Chi2 test of {} _ {} is \n {}".format(varname,label[i], hMC[i].Chi2Test(hdata,"WWP")))
@@ -183,7 +187,7 @@ def plot_var(varname):
     hdata.SetMarkerStyle(3)
     hdata.SetMarkerColor(r.kBlack)
     hs.Add(hdata, "P")
-    for i in range(0,2):
+    for i in range(0,3):
         hMC[i].SetLineColor(color[i])
         hMC[i].SetLineWidth(3)
         hs.Add(hMC[i],"hist")
@@ -203,21 +207,21 @@ def plot_var(varname):
     if 'Eta' in v or 'Phi' in v or 'cos_theta_l' in v or 'phi' in v:
         leg = r.TLegend(0.35,0.1,0.55,0.35)
         leg.AddEntry(hdata, "data", "ep")
-        for i in range(0,2):
+        for i in range(0,3):
             leg.AddEntry(hMC[i], "MC {}".format(label[i]), "lf")
         leg.Draw()
 
     elif v=='bCosAlphaBS':
         leg = r.TLegend(0.35,0.1,0.55,0.35)
         leg.AddEntry(hdata, "data", "ep")
-        for i in range(0,2):
+        for i in range(0,3):
             leg.AddEntry(hMC[i], "MC {}".format(label[i]), "lf")
         leg.Draw()
     
     else:
         leg = r.TLegend(0.7,0.7,0.90,0.95)
         leg.AddEntry(hdata, "data", "ep")
-        for i in range(0,2):
+        for i in range(0,3):
             leg.AddEntry(hMC[i], "MC {}".format(label[i]), "lf")
         leg.Draw()
 
@@ -231,7 +235,7 @@ def plot_var(varname):
     pad2_3In1.cd()       #pad2 becomes the current pad
 
     hratio_MCvsdata = r.THStack()
-    for i in range(0,2):
+    for i in range(0,3):
         hratio[i].SetMarkerColor(color[i])
         hratio[i].SetLineColor(color[i])
         hratio[i].SetLineWidth(3)
@@ -239,8 +243,8 @@ def plot_var(varname):
         hratio_MCvsdata.Add(hratio[i],"P")
 
     hratio_MCvsdata.Draw("nostack")
-    hratio_MCvsdata.SetMinimum(0.35)  #Define Y
-    hratio_MCvsdata.SetMaximum(1.65) #range
+    hratio_MCvsdata.SetMinimum(0.7)  #Define Y
+    hratio_MCvsdata.SetMaximum(1.3) #range
     hratio_MCvsdata.GetXaxis().SetTitle(varname)
     hratio_MCvsdata.SetTitle("")
     #Y axis ratio plot settings
@@ -262,7 +266,7 @@ def plot_var(varname):
     line_3In1.SetLineStyle(3)
     line_3In1.Draw()
 
-    c.SaveAs('Complots/{}/3class/{}.png'.format(year,varname))
+    c.SaveAs('Complots/{}/2class_tmva/{}.png'.format(year,varname))
 
 for v in columns_draw: plot_var(v)
 

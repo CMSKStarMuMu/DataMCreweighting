@@ -190,7 +190,7 @@ print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 print("Training samples preparation------------------------------------------")
 #columns = ['bVtxCL', 'bLBS', 'bLBSE' ,'bPt','bEta','bCosAlphaBS', 'bDCABS','bDCABSE', 'kstTrk1DCABS','kstTrk1DCABSE','kstTrk2DCABS','kstTrk2DCABSE','sum_isopt_04']
 
-columns = ['kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta','mu1Pt','mu2Pt','mu1Eta','mu2Eta']
+columns = ['kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta','mu1Pt','mu2Pt','mu1Eta','mu2Eta','bCosAlphaBS','kstTrk1DCABS','kstTrk2DCABS','sum_isopt_04']
 sw_branch = ['nsig_sw']
 weight_branch = ['weight']
 DCratew_branch = ['DRweight']

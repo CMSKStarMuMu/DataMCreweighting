@@ -59,8 +59,8 @@ variable("bCosAlphaBS","bCosAlphaBS",[100, 0.9996, 1.0])
 variable("bDCABS","bDCABS",[100, -0.015, 0.015])
 variable("bDCABSE","bDCABSE_scaled",[100, 0, 0.005]) #significance
 
-variable("kstTrk1DCABS","kstTrk1DCABS",[100, -1, 1])
-variable("kstTrk2DCABS","kstTrk2DCABS",[100, -1, 1])
+variable("kstTrk1DCABS","kstTrk1DCABS",[100, -0.4, 0.4])
+variable("kstTrk2DCABS","kstTrk2DCABS",[100, -0.4, 0.4])
 variable("kstTrk1DCABSE","kstTrk1DCABSE",[100, 0, 0.025])
 variable("kstTrk2DCABSE","kstTrk2DCABSE",[100, 0, 0.035])
 
@@ -68,7 +68,7 @@ variable("kstTrk2DCABSE","kstTrk2DCABSE",[100, 0, 0.035])
 variable("kstTrk2MinIP2D","kstTrk2MinIP2D ",[100, 0, 1])
 variable("kstTrk1MinIP2D","kstTrk1MinIP2D ",[100, 0, 1])
 
-variable("sum_isopt_04","sum_isopt_04 ",[100, 0, 40])
+variable("sum_isopt_04","sum_isopt_04 ",[100, 0, 10])
 
 variable("mu1Pt", "mu1PT", [100,0,40])
 variable("mu2Pt", "mu2PT", [100,0,40])
@@ -101,14 +101,16 @@ variable("kstVtxCL","kstVtxCL",[100,0,1])
 variable("BDTout","BDTout",[100,0,1])
 
 
-columns_draw = ["BDTout",
+'''columns_draw = ["BDTout",
                 "bPt","bEta",
                 "mu1Pt","mu1Eta",
                 "mu2Pt","mu2Eta",
                 "kstTrk2Pt","kstTrk2Eta",
                 "kstTrk1Pt","kstTrk1Eta",
-                "cos_theta_l","cos_theta_k","phi_kst_mumu",
-                ]
+                "cos_theta_l","cos_theta_k","phi_kst_mumu","sum_isopt_04","kstTrk1DCABS","kstTrk2DCABS","bCosAlphaBS"
+                ]    '''      
+columns_draw = ["kstTrk2DCABS"]
+  
 
 columns_error = ["bLBSE","bDCABSE","kstTrk1DCABSE","kstTrk2DCABSE"]
 
