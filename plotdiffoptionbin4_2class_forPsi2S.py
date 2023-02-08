@@ -16,9 +16,9 @@ mc_mass  = 5.27783
 JPsiMass_ = 3.096916
 nSigma_psiRej = 3.
 
-selJpsi = "(mumuMass*mumuMass>8.68 && mumuMass*mumuMass < 10.09) && pass_preselection==1 && (tagged_mass > 5.0 && tagged_mass < 5.6) &&  xcut == 0 && passB0Psi_jpsi == 1"
-selData  = selJpsi + "&& eventN%2==1"
-selMC = selJpsi + "&& eventN_x%2==1" + " && (trig==1) && truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1"
+selPsi = "(mumuMass*mumuMass>12.86 && mumuMass*mumuMass < 14.18) && pass_preselection==1 && (tagged_mass > 5.0 && tagged_mass < 5.6) &&  xcut == 0 && passB0Psi_psip == 1"
+selData  = selPsi + "&& eventN%2==1"
+selMC = selPsi + "&& eventN%2==1" + " && (trig==2) && truthMatchMum == 1 && truthMatchMup == 1 && truthMatchTrkm == 1 && truthMatchTrkp == 1"
 
 
 variables = {} #dictionary containing all the variables
@@ -102,7 +102,7 @@ variable("kstVtxCL","kstVtxCL",[100,0,1])
 variable("BDTout","BDTout",[100,0,1])
 
 
-columns_draw = ["BDTout",
+columns_draw = [
                 "bPt","bEta",
                 "mu1Pt","mu1Eta",
                 "mu2Pt","mu2Eta",
@@ -123,25 +123,32 @@ rdata = TChain("ntuple")
 rMC = []
 rMC_ori = TChain("ntuple")
 #rMC_rw= TChain("ntuple")
+
 if (year !=2017):
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/psi2s_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_PsiP_mergeSweights.root".format(year))
+    rMC_ori.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/{}MC_PSI_noIP2D_addxcutvariable.root".format(year))
+else :
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/psi2s_channel_splot/{}data_noIP2D_noNan_addxcutvariable_passSPlotCuts_PsiP_mergeSweights.root".format(year))
+    rMC_ori.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/{}MC_PSI_noIP2D_noNan_addxcutvariable.root".format(year))
+'''if (year !=2017):
     rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
 else:
     rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_noNan_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
 BDTdata = TChain("BDTTree")
 BDTdata.Add("./files/{}/JPsiKdata_BDTout_XGBV5_{}_2class.root".format(year,year))
 rdata.AddFriend(BDTdata)
+'''
 
-
-rMC_ori.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
+#rMC_ori.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
 #rMC_rw.Add("/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/MC-Jpsi-presel-scaled/{}.root".format(year))
 MCBDT = TChain("wTree")
 MCBDT.Add("./files/{}/JPsiK_reweight_XGBV5_{}_2class.root".format(year,year))
 rMC_ori.AddFriend(MCBDT)
 #rMC_rw.AddFriend(MCBDT)
 
-BDTMC = TChain("BDTTree")
-BDTMC.Add("./files/{}/JPsiKMC_BDTout_XGBV5_{}_2class.root".format(year,year))
-rMC_ori.AddFriend(BDTMC)
+#BDTMC = TChain("BDTTree")
+#BDTMC.Add("./files/{}/JPsiKMC_BDTout_XGBV5_{}_2class.root".format(year,year))
+#rMC_ori.AddFriend(BDTMC)
 
 rMC.append(rMC_ori)
 rMC.append(rMC_ori)
@@ -161,9 +168,9 @@ def plot_var(varname):
     for i in range(0,2):
         hMC.append(r.TH1F('h{}_MC_{}'.format(varname,label[i]),'h{}_MC_{}'.format(varname,label[i]),variables[varname].get_nbins(), variables[varname].get_xmin(), variables[varname].get_xmax()))
         if i==0:
-            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DRweight*({})'.format(selMC),'goff')
+            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*({})'.format(selMC),'goff')
         else:
-            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*DRweight*MCw*({})'.format(selMC),'goff')
+            rMC[i].Draw('{}>>h{}_MC_{}'.format(varname,varname,label[i]),'weight*MCw*({})'.format(selMC),'goff')
         hMC[i].Scale(1./hMC[i].Integral())
         print ("KStest of {} _ {} is \n {}".format(varname,label[i], hMC[i].KolmogorovTest(hdata,"D")))
         print ("Chi2 test of {} _ {} is \n {}".format(varname,label[i], hMC[i].Chi2Test(hdata,"WWP")))
@@ -262,7 +269,7 @@ def plot_var(varname):
     line_3In1.SetLineStyle(3)
     line_3In1.Draw()
 
-    c.SaveAs('Complots/{}/2class/{}.png'.format(year,varname))
+    c.SaveAs('Complots/{}/2class_Psi2S/{}.png'.format(year,varname))
 
 for v in columns_draw: plot_var(v)
 

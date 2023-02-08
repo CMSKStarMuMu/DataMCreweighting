@@ -163,7 +163,7 @@ weight_branch = MC_friend.Branch("BDTout", leafValues,"BDTout[1]/F")
 print("Wtree builded")
 print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 print("Training samples preparation------------------------------------------")
-columns = ['kstTrk1Pt', 'kstTrk2Pt','kstTrk1Eta', 'kstTrk2Eta','mu1Pt','mu2Pt','mu1Eta','mu2Eta','bCosAlphaBS','kstTrk1DCABS','kstTrk2DCABS','sum_isopt_04']
+columns = ['bEta','kstTrk1Pt', 'kstTrk2Pt','mu1Pt','mu2Pt','bCosAlphaBS','kstTrk1DCABS','kstTrk2DCABS']
 sw_branch = ['nsig_sw']
 weight_branch = ['weight']
 DCratew_branch = ['DRweight']

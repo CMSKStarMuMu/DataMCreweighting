@@ -148,11 +148,11 @@ variable("weight","PUweight",[100,-1,3])
 rdata = r.TChain("ntuple")
 MC = r.TChain("ntuple")
 if (year !=2017):
-    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
-    MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/psi2s_channel_splot/{}data_noIP2D_addxcutvariable_passSPlotCuts_PsiP_mergeSweights.root".format(year))
+    MC.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/{}MC_PSI_noIP2D_addxcutvariable.root".format(year))
 else :
-    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/jpsi_channel_splot/{}data_noIP2D_noNan_addxcutvariable_passSPlotCuts_mergeSweights.root".format(year))
-    MC.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGB_postBDT/{}MC_JPSI_forXGB_AddDRweight.root".format(year))
+    rdata.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/psi2s_channel_splot/{}data_noIP2D_noNan_addxcutvariable_passSPlotCuts_PsiP_mergeSweights.root".format(year))
+    MC.Add("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/ntuples/after_nominal_selection/{}MC_PSI_noIP2D_noNan_addxcutvariable.root".format(year))
 #rDCrate = r.TChain("ntuple")
 #rDCrate.Add("/afs/cern.ch/user/x/xuqin/cernbox/workdir/B0KstMuMu/reweight/Tree/final/XGBV5/{}/{}_MC_JPSI_scale_and_preselection_p{}.root".format(year,year,parity))
 MC_friend = r.TTree("wTree", "weights tree")
@@ -167,7 +167,7 @@ print("Training samples preparation------------------------------------------")
 columns = ['bEta','kstTrk1Pt', 'kstTrk2Pt','mu1Pt','mu2Pt','bCosAlphaBS','kstTrk1DCABS','kstTrk2DCABS']
 sw_branch = ['nsig_sw']
 weight_branch = ['weight']
-DCratew_branch = ['DRweight']
+#DCratew_branch = ['DRweight']
 data_ori = root_numpy.tree2array(rdata,branches=columns)
 print("Data sample readed------------------------------------------", data_ori.shape)
 phsp_ori = root_numpy.tree2array(MC,branches=columns)
@@ -178,11 +178,11 @@ print("dataSweights readed------------------------------------------",JpsiKSigna
 MCPUweight = root_numpy.tree2array(MC,branches=weight_branch)
 MCPUweight=MCPUweight.reshape(-1,1).astype(float)
 print("MCPUweights readed------------------------------------------",MCPUweight.shape)
-MCDCratew = root_numpy.tree2array(MC,branches=DCratew_branch)
-MCDCratew =MCDCratew.reshape(-1,1).astype(float)
-print("MCDCratew readed------------------------------------------",MCDCratew.shape)
-MCweight = MCPUweight*MCDCratew
-
+#MCDCratew = root_numpy.tree2array(MC,branches=DCratew_branch)
+#MCDCratew =MCDCratew.reshape(-1,1).astype(float)
+#print("MCDCratew readed------------------------------------------",MCDCratew.shape)
+#MCweight = MCPUweight*MCDCratew
+MCweight = MCPUweight
 data_only_X=pd.DataFrame(data_ori,columns=columns)
 phsp_only_X=pd.DataFrame(phsp_ori,columns=columns)
 corrdata = data_only_X.corr()
@@ -267,7 +267,7 @@ print(weight_phsp)
 
 print("MC weights------------------------------------------")
 
-MCwFile = r.TFile("./files/{}/JPsiK_reweight_XGBV5_{}_2class.root".format(year,year),"RECREATE")
+MCwFile = r.TFile("./files/{}/Psi2S_reweight_XGBV5_{}_2class.root".format(year,year),"RECREATE")
 
 for val in weight_phsp:
     leafValues[0] = val
